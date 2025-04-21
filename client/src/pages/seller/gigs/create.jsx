@@ -41,44 +41,54 @@ function CreateGigs() {
     }
   };
   const addGig = async () => {
-    const { category, description, price, revisions, time, title, shortDesc } =
-      data;
+    console.log("button clicked");
+  
     if (
-      category &&
-      description &&
-      title &&
+      data.category &&
+      data.description &&
+      data.title &&
       features.length &&
       files.length &&
-      price > 0 &&
-      shortDesc.length &&
-      revisions > 0 &&
-      time > 0
+      data.price > 0 &&
+      data.shortDesc.length &&
+      data.revisions > 0 &&
+      data.time > 0
     ) {
       const formData = new FormData();
       files.forEach((file) => formData.append("images", file));
+  
       const gigData = {
-        title,
-        description,
-        category,
+        title: data.title,
+        description: data.description,
+        category: data.category,
         features,
-        price,
-        revisions,
-        time,
-        shortDesc,
+        price: data.price,
+        revisions: data.revisions,
+        time: data.time,
+        shortDesc: data.shortDesc,
       };
-      const response = await axios.post(ADD_GIG_ROUTE, formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${cookies.jwt}`,
-        },
-        params: gigData,
-      });
-      if (response.status === 201) {
-        router.push("/seller/gigs");
+  
+      try {
+        const response = await axios.post(ADD_GIG_ROUTE, formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${cookies.jwt}`,
+          },
+          params: gigData,
+        });
+  
+        if (response.status === 201) {
+          router.push("/seller/gigs");
+        }
+      } catch (error) {
+        console.error("Gig creation failed:", error.response?.data || error.message);
       }
+    } else {
+      console.warn("Validation failed: Make sure all fields are correctly filled.");
     }
   };
+  
   return (
     <div className="min-h-[80vh] my-10 mt-28 px-32 ">
       <h1 className="text-6xl text-gray-900 mb-5">Create a new Gig</h1>
