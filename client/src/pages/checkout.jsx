@@ -40,7 +40,7 @@ function Checkout() {
   }
 
   return (
-    <div className="min-h-[80vh] max-w-full mx-20 flex flex-col gap-10 items-center">
+    <div className="min-h-[80vh] max-w-full mx-20 mt-32 flex flex-col gap-10 items-center">
       <h1 className="text-3xl">
         Please complete the payment to place the order.
       </h1>
