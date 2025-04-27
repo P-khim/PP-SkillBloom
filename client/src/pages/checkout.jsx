@@ -6,10 +6,12 @@ import { CREATE_ORDER } from "../utils/constants";
 import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "../components/CheckoutForm";
 import { useRouter } from "next/router";
+import PaymentModal from "../components/PaymentModal";
 
 const stripePromise = loadStripe("pk_test_51REiyXCvyJcIgd5qZy4TwbLBtpQZvV5aQVWKgW1Dk3eSeoLlM6m1RorljyJEw1k2DXI1zhsKU4aw1u5S7lBPP99900j68K3dI3");
 
 function Checkout() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientSecret, setClientSecret] = useState("");
   const router = useRouter();
   const { gigId } = router.query;
@@ -33,6 +35,10 @@ function Checkout() {
     appearance,
   };
 
+  const handleKHQRButton = () => {
+    setIsModalOpen(true);
+  }
+
   return (
     <div className="min-h-[80vh] max-w-full mx-20 flex flex-col gap-10 items-center">
       <h1 className="text-3xl">
@@ -43,7 +49,10 @@ function Checkout() {
           <CheckoutForm />
         </Elements>
       )}
+      <button onClick={handleKHQRButton}>Pay by KHQR</button>
+      <PaymentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
+   
   );
 }
 
