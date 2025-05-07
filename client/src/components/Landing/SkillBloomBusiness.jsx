@@ -3,7 +3,6 @@ import React from "react";
 import { BsCheckCircle } from "react-icons/bs";
 import SkillBloomLogo from "../SkillBloomLogo";
 
-
 function SkillBloomBusiness() {
   return (
     <div className="bg-[#0d084d] px-20 py-16 flex gap-10">
@@ -42,8 +41,14 @@ function SkillBloomBusiness() {
           Explore SkillBloom Business
         </button>
       </div>
-      <div className="relative h-[512px] w-2/3">
-        <Image src="/business.jpg" alt="bsiness" fill />
+      <div className="relative w-2/3 h-[512px]">
+        <Image
+          src="/business.jpg"
+          alt="business"
+          width={768}  // Width equivalent to 2/3 of the container's width
+          height={512} // Maintain the height as you desire
+          className="object-contain"
+        />
       </div>
     </div>
   );

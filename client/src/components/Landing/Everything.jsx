@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React from "react";
 import { BsCheckCircle } from "react-icons/bs";
+
 function Everything() {
   const everythingData = [
     {
@@ -24,6 +25,7 @@ function Everything() {
         "Our round-the-clock support team is available to help anytime, anywhere.",
     },
   ];
+
   return (
     <div className="bg-[#f1fdf7] flex py-20 justify-between px-24">
       <div>
@@ -44,8 +46,14 @@ function Everything() {
           })}
         </ul>
       </div>
-      <div className="relative h-96 w-2/4">
-        <Image src="/everything.jpg" fill alt="everything" />
+      <div className="relative w-2/4 h-96">
+        <Image
+          src="/everything.jpg"
+          alt="everything"
+          width={768} // Set to match the container's width
+          height={384} // Adjust to your desired height
+          className="object-contain"
+        />
       </div>
     </div>
   );
