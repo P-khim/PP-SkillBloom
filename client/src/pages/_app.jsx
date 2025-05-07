@@ -1,11 +1,10 @@
 import "../globals.css";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
-
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { CookiesProvider } from "react-cookie";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StateProvider } from "../context/StateContext";
 import reducer, { initialState } from "../context/StateReducers";
 import { useCookies } from "react-cookie";
@@ -20,7 +19,7 @@ function AuthGuard({ children }) {
       router.pathname.includes("/buyer")
     ) {
       if (!cookies.jwt) {
-        router.push("/");
+        router.replace("/"); // Replace instead of push for smoother navigation
       }
     }
   }, [cookies, router]);
@@ -29,6 +28,12 @@ function AuthGuard({ children }) {
 }
 
 export default function App({ Component, pageProps }) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true); // This ensures the logic runs only on the client side
+  }, []);
+
   return (
     <CookiesProvider>
       <StateProvider initialState={initialState} reducer={reducer}>
@@ -40,7 +45,7 @@ export default function App({ Component, pageProps }) {
           <Navbar />
           <div
             className={`${
-              typeof window !== "undefined" && window.location.pathname !== "/" ? "mt-36" : ""
+              isClient && window.location.pathname !== "/" ? "mt-36" : ""
             } mb-auto w-full mx-auto`}
           >
             <AuthGuard>
