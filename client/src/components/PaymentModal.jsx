@@ -49,19 +49,21 @@ const PaymentModal = ({ isOpen, onClose }) => {
 
         {paymentData && (
           <div>
-            <h3>✅ Payment Created Successfully!</h3>
+            {/* <h3>✅ Payment Created Successfully!</h3>
             <p><strong>Status:</strong> {paymentData.status.message}</p>
             <p><strong>Transaction ID:</strong> {paymentData.status.tran_id}</p>
-            <p><strong>Description:</strong> {paymentData.description}</p>
+            <p><strong>Description:</strong> {paymentData.description}</p> */}
 
             <h4>Scan this QR Code:</h4>
-            <img
-              src={paymentData.qrImage}
-              alt="QR Code"
-              style={{ width: '250px', height: '250px', marginTop: '10px' }}
-            />
+            <div style={styles.qrContainer}>
+              <img
+                src={paymentData.qrImage}
+                alt="QR Code"
+                style={styles.qrImage}
+              />
+            </div>
 
-            <div style={{ marginTop: '20px' }}>
+            {/* <div style={{ marginTop: '20px' }}>
               <a
                 href={paymentData.abapay_deeplink}
                 style={{
@@ -69,17 +71,17 @@ const PaymentModal = ({ isOpen, onClose }) => {
                   color: 'white',
                   padding: '10px 20px',
                   textDecoration: 'none',
-                  borderRadius: '5px'
+                  borderRadius: '5px',
                 }}
               >
                 Open in ABA App
               </a>
-            </div>
+            </div> */}
 
-            <div style={{ marginTop: '15px' }}>
+            {/* <div style={{ marginTop: '15px' }}>
               <a href={paymentData.app_store} target="_blank" rel="noopener noreferrer">App Store</a> |{' '}
               <a href={paymentData.play_store} target="_blank" rel="noopener noreferrer">Play Store</a>
-            </div>
+            </div> */}
           </div>
         )}
       </div>
@@ -116,6 +118,16 @@ const styles = {
     cursor: 'pointer',
     border: 'none',
     background: 'none',
+  },
+  qrContainer: {
+    display: 'flex',
+    justifyContent: 'center',  
+    alignItems: 'center',  
+    marginTop: '10px',
+  },
+  qrImage: {
+    width: '250px',
+    height: '250px',
   },
 };
 
