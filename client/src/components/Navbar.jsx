@@ -50,7 +50,7 @@ function Navbar() {
   const links = [
     { linkName: "BloomPro", handler: "#", type: "link" },
     { linkName: "Explore", handler: "#", type: "link" },
-    { linkName: "English", handler: "#", type: "link" },
+    // { linkName: "English", handler: "#", type: "link" },
     { linkName: "Become a Seller", handler: "#", type: "link" },
     { linkName: "Sign in", handler: handleLogin, type: "button" },
     { linkName: "Join", handler: handleSignup, type: "button2" },
@@ -174,11 +174,9 @@ function Navbar() {
         >
           <div>
             <Link href="/">
-              
-              <SkillBloomLogo 
+              <SkillBloomLogo
                 fillColor={!navFixed && !userInfo ? "#ffffff" : "#404145"}
               />
-
             </Link>
           </div>
           <div

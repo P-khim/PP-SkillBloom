@@ -7,7 +7,7 @@ function Companies() {
       Trusted by: &nbsp;
       <ul className="flex justify-between gap-10 ml-10">
         {[1, 2, 3, 4, 5].map((num) => (
-          <li key={num} className="relative h-[4.5rem] w-[4.5rem]">
+          <li key={num} className="relative h-[4.5rem] w-[6.5rem]">
             <Image src={`/trusted${num}.png`} alt="trusted brands" fill />
           </li>
         ))}
