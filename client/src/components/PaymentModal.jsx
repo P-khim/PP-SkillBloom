@@ -4,51 +4,29 @@ const PaymentModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
   const [error, setError] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState('pending');
 
-  // Fetch QR on open
   useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen) {
+      setLoading(true);
+      setPaymentData(null);
+      setError(null);
 
-    setLoading(true);
-    setPaymentData(null);
-    setError(null);
-    setPaymentStatus('pending');
-
-    fetch('http://localhost:8747/api/checkout', {
-      method: 'POST',
-      credentials: 'include',
-    })
-      .then(res => res.json())
-      .then(data => {
-        setPaymentData(data);
-        setLoading(false);
+      fetch('http://localhost:8747/api/checkout', {
+        method: 'POST',
+        credentials: 'include',
       })
-      .catch(err => {
-        setError('❌ Failed to generate QR.');
-        setLoading(false);
-      });
-  }, [isOpen]);
-
-  // Poll for payment status every 3 seconds
-  useEffect(() => {
-    if (!paymentData?.md5 || paymentStatus === 'completed') return;
-
-    const interval = setInterval(() => {
-      fetch(`http://localhost:8747/api/check-payment-status?md5=${paymentData.md5}`)
         .then(res => res.json())
         .then(data => {
-          if (data.status === 'completed') {
-            setPaymentStatus('completed');
-            clearInterval(interval);
-            setTimeout(() => onClose(), 2000); // Close modal after 2 seconds
-          }
+          setPaymentData(data);
+          setLoading(false);
         })
-        .catch(err => console.error("Polling error:", err));
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [paymentData, paymentStatus]);
+        .catch(err => {
+          console.error('Payment error:', err);
+          setError('❌ Payment failed, please try again.');
+          setLoading(false);
+        });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -57,45 +35,81 @@ const PaymentModal = ({ isOpen, onClose }) => {
       <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
         <button style={styles.closeButton} onClick={onClose}>&times;</button>
 
-        {loading && <p>Generating Bakong QR...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {loading && (
+          <div style={{ marginTop: '30px' }}>
+            <p>Loading Bakong QR Payment...</p>
+          </div>
+        )}
+
+        {error && (
+          <div style={{ color: 'red', marginTop: '20px' }}>
+            <p>{error}</p>
+          </div>
+        )}
 
         {paymentData && (
-          <>
-            <img
-              src={paymentData.qr} // Full QR with branding baked into backend
-              alt="Bakong QR"
-              style={styles.qrImage}
-            />
+          <div>
+            <h3 style={{ marginBottom: '10px' }}>Scan to Pay with Bakong</h3>
             <p><strong>Amount:</strong> ${paymentData.amount}</p>
-            <p><strong>MD5:</strong> {paymentData.md5}</p>
-            <p style={{ color: paymentStatus === 'completed' ? 'green' : '#555' }}>
-              {paymentStatus === 'completed' ? '✅ Payment Successful' : 'Waiting for payment...'}
+            <p><strong>MD5 Hash:</strong> {paymentData.md5}</p>
+
+            <div style={styles.qrContainer}>
+              <img
+                src={paymentData.qr}
+                alt="Bakong QR Code"
+                style={styles.qrImage}
+              />
+            </div>
+
+            <p style={{ marginTop: '10px', fontSize: '14px', color: '#555' }}>
+              Open your Bakong-supported app and scan the QR to pay.
             </p>
-          </>
+          </div>
         )}
       </div>
     </div>
   );
 };
 
+// CSS-in-JS styles
 const styles = {
   modalOverlay: {
-    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-    justifyContent: 'center', alignItems: 'center', zIndex: 1000,
+    position: 'fixed',
+    top: 0, left: 0,
+    width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: '#fff', padding: 20, borderRadius: 12,
-    maxWidth: 360, textAlign: 'center', position: 'relative',
+    backgroundColor: '#fff',
+    width: '90%',
+    maxWidth: '500px',
+    padding: '20px',
+    borderRadius: '10px',
+    position: 'relative',
+    textAlign: 'center',
   },
   closeButton: {
-    position: 'absolute', top: 10, right: 15, fontSize: 24,
-    border: 'none', background: 'transparent', cursor: 'pointer',
+    position: 'absolute',
+    top: '10px',
+    right: '15px',
+    fontSize: '24px',
+    cursor: 'pointer',
+    border: 'none',
+    background: 'none',
+  },
+  qrContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '10px',
   },
   qrImage: {
-    width: 280, height: 'auto', marginBottom: 10,
-    borderRadius: 8, border: '1px solid #ccc',
+    width: '250px',
+    height: '250px',
   },
 };
 
