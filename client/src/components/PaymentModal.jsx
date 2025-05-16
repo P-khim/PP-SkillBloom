@@ -31,44 +31,39 @@ const PaymentModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <button style={styles.closeButton} onClick={onClose}>&times;</button>
+    isOpen && (
+      <div style={styles.modalOverlay} onClick={onClose}>
+        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <button style={styles.closeButton} onClick={onClose}>&times;</button>
 
-        {loading && (
-          <div style={{ marginTop: '30px' }}>
-            <p>Loading Bakong QR Payment...</p>
-          </div>
-        )}
+          {loading && <p style={styles.message}>Loading Bakong QR Payment...</p>}
+          {error && <p style={{ ...styles.message, color: 'red' }}>{error}</p>}
 
-        {error && (
-          <div style={{ color: 'red', marginTop: '20px' }}>
-            <p>{error}</p>
-          </div>
-        )}
+          {paymentData && (
+            <div style={styles.khqrCard}>
+              <div style={styles.khqrHeader}>
+                <span style={styles.khqrHeaderText}>KHQR</span>
+              </div>
 
-        {paymentData && (
-          <div>
-            <h3 style={{ marginBottom: '10px' }}>Scan to Pay with Bakong</h3>
-            <p><strong>Amount:</strong> ${paymentData.amount}</p>
-            <p><strong>MD5 Hash:</strong> {paymentData.md5}</p>
+              <div style={styles.khqrBody}>
+                <p style={styles.label}>PENG LYKHIM</p>
+                <p style={styles.amount}>{Number(paymentData.amount).toFixed(2)} <span style={styles.currency}>USD</span></p>
 
-            <div style={styles.qrContainer}>
-              <img
-                src={paymentData.qr}
-                alt="Bakong QR Code"
-                style={styles.qrImage}
-              />
+                <div style={styles.qrContainer}>
+                  <img
+                    src={paymentData.qr}
+                    alt="Bakong QR Code"
+                    style={styles.qrImage}
+                  />
+                </div>
+              </div>
             </div>
-
-            <p style={{ marginTop: '10px', fontSize: '14px', color: '#555' }}>
-              Open your Bakong-supported app and scan the QR to pay.
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    )
   );
+
 };
 
 // CSS-in-JS styles
@@ -111,6 +106,69 @@ const styles = {
     width: '250px',
     height: '250px',
   },
+  khqrCard: {
+  backgroundColor: '#fff',
+  borderRadius: '12px',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+  overflow: 'hidden',
+  textAlign: 'center',
+  maxWidth: '300px',
+  margin: 'auto',
+  fontFamily: 'sans-serif',
+},
+
+khqrHeader: {
+  backgroundColor: '#d52828',
+  padding: '10px 0',
+},
+
+khqrHeaderText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: '18px',
+},
+
+khqrBody: {
+  padding: '20px',
+},
+
+label: {
+  fontSize: '16px',
+  marginBottom: '5px',
+  color: '#555',
+},
+
+amount: {
+  fontSize: '24px',
+  fontWeight: 'bold',
+  marginBottom: '10px',
+},
+
+currency: {
+  fontSize: '14px',
+  fontWeight: 'normal',
+  color: '#777',
+},
+
+qrContainer: {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: '10px',
+},
+
+qrImage: {
+  width: '200px',
+  height: '200px',
+},
+
+message: {
+  marginTop: '30px',
+  fontSize: '16px',
+  color: '#333',
+},
+
+  
 };
 
 export default PaymentModal;

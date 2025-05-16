@@ -49,7 +49,7 @@ function Checkout() {
           <CheckoutForm />
         </Elements>
       )}
-      <button onClick={handleKHQRButton}>Pay by KHQR</button>
+      <button onClick={handleKHQRButton} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">Pay by KHQR</button>
       <PaymentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
    

@@ -31,7 +31,7 @@ async function checkTransaction(md5) {
       }
     );
 
-    console.log('🟢 Bakong Response:', response.data);
+    //console.log('🟢 Bakong Response:', response.data);
     return response.data;
   } catch (error) {
     console.error('🔴 Error checking transaction:', error.response?.data || error.message);
