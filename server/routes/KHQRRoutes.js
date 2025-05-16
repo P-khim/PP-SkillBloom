@@ -16,8 +16,8 @@ const optionalData = {
   terminalLabel: 'Cashier_1',
 };
 
-// Static token — Replace this with secure handling (env vars, etc.)
-const BAKONG_BEARER_TOKEN = 'eyJhbGciOi...your_token_here...'; // shorten here for clarity
+
+const BAKONG_BEARER_TOKEN = process.env.BAKONG_BEARER_TOKEN;
 
 // Generate QR Endpoint
 router.post('/', async (req, res) => {
