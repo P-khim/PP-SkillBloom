@@ -11,9 +11,16 @@ const PaymentModal = ({ isOpen, onClose }) => {
       setPaymentData(null);
       setError(null);
 
+      const urlParams = new URLSearchParams(window.location.search);
+      const gigId = urlParams.get('gigId');
+
       fetch('http://localhost:8747/api/checkout', {
         method: 'POST',
+        headers:{
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
+        body: JSON.stringify({gigId}),
       })
         .then(res => res.json())
         .then(data => {

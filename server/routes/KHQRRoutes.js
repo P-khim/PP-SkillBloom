@@ -2,16 +2,19 @@ import express from 'express';
 import { BakongKHQR, khqrData, IndividualInfo } from 'bakong-khqr';
 import QRCode from 'qrcode';
 import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
 
 const router = express.Router();
 
-const optionalData = {
-  currency: khqrData.currency.usd,
-  amount: 0.1,
-  mobileNumber: '85586294990',
-  storeLabel: 'SkillBloom',
-  terminalLabel: 'Cashier_1',
-};
+// const optionalData = {
+//   currency: khqrData.currency.usd,
+//   amount: 0.1,
+//   mobileNumber: '85586294990',
+//   storeLabel: 'SkillBloom',
+//   terminalLabel: 'Cashier_1',
+// };
 
 const BAKONG_BEARER_TOKEN = process.env.BAKONG_BEARER_TOKEN;
 
@@ -62,6 +65,32 @@ async function pollTransactionUntilSuccess(md5, maxAttempts = 30, interval = 100
 // --- Generate QR Code and Start Polling ---
 router.post('/', async (req, res) => {
   try {
+    const { gigId } = req.body;
+
+    if (!gigId) {
+      return res.status(400).json({ error: 'gigId is required' });
+    }
+
+    // Fetch gig with Prisma
+    const gig = await prisma.gigs.findUnique({
+      where: { id: Number(gigId) },
+      select: { price: true },
+    });
+
+    if (!gig) {
+      return res.status(404).json({ error: 'Gig not found' });
+    }
+
+    const amountFromDB = gig.price;
+
+    const optionalData = {
+      currency: khqrData.currency.usd,
+      amount: amountFromDB,
+      mobileNumber: '85586294990',
+      storeLabel: 'SkillBloom',
+      terminalLabel: 'Cashier_1',
+    };
+
     const individualInfo = new IndividualInfo(
       'peng_lykhim@aclb',
       'Peng Lykhim',
@@ -77,9 +106,9 @@ router.post('/', async (req, res) => {
     const qrImage = await QRCode.toDataURL(qr);
 
     // Send QR data to frontend
-    res.json({ qr: qrImage, amount: optionalData.amount, md5 });
+    res.json({ qr: qrImage, amount: amountFromDB, md5 });
 
-    // Start polling in the background
+    // Start polling transaction in the background (optional, as before)...
     const result = await pollTransactionUntilSuccess(md5);
 
     if (result.success) {
