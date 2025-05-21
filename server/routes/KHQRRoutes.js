@@ -3,19 +3,10 @@ import { BakongKHQR, khqrData, IndividualInfo } from 'bakong-khqr';
 import QRCode from 'qrcode';
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { verifyToken } from '../middlewares/AuthMiddleware.js';
+
 const prisma = new PrismaClient();
-
-
 const router = express.Router();
-
-// const optionalData = {
-//   currency: khqrData.currency.usd,
-//   amount: 0.1,
-//   mobileNumber: '85586294990',
-//   storeLabel: 'SkillBloom',
-//   terminalLabel: 'Cashier_1',
-// };
-
 const BAKONG_BEARER_TOKEN = process.env.BAKONG_BEARER_TOKEN;
 
 // --- Check Transaction Status ---
@@ -33,8 +24,6 @@ async function checkTransaction(md5) {
         },
       }
     );
-
-    //console.log('🟢 Bakong Response:', response.data);
     return response.data;
   } catch (error) {
     console.error('🔴 Error checking transaction:', error.response?.data || error.message);
@@ -49,7 +38,6 @@ async function pollTransactionUntilSuccess(md5, maxAttempts = 30, interval = 100
   while (attempt < maxAttempts) {
     const result = await checkTransaction(md5);
 
-    // Check for success based on responseCode and presence of data
     if (result?.responseCode === 0 && result?.data) {
       return { success: true, data: result.data };
     }
@@ -62,16 +50,17 @@ async function pollTransactionUntilSuccess(md5, maxAttempts = 30, interval = 100
   return { success: false, message: 'Timeout: No success status within 5 minutes.' };
 }
 
-// --- Generate QR Code and Start Polling ---
-router.post('/', async (req, res) => {
+// --- KHQR Payment Route ---
+router.post('/', verifyToken, async (req, res) => {
   try {
     const { gigId } = req.body;
+    const buyerId = req.userId;
 
     if (!gigId) {
       return res.status(400).json({ error: 'gigId is required' });
     }
 
-    // Fetch gig with Prisma
+    // Fetch gig price
     const gig = await prisma.gigs.findUnique({
       where: { id: Number(gigId) },
       select: { price: true },
@@ -83,6 +72,7 @@ router.post('/', async (req, res) => {
 
     const amountFromDB = gig.price;
 
+    // Prepare QR Code Data
     const optionalData = {
       currency: khqrData.currency.usd,
       amount: amountFromDB,
@@ -105,22 +95,33 @@ router.post('/', async (req, res) => {
 
     const qrImage = await QRCode.toDataURL(qr);
 
-    // Send QR data to frontend
-    res.json({ qr: qrImage, amount: amountFromDB, md5 });
+    // Send QR code to client
+    res.status(200).json({ qr: qrImage, amount: amountFromDB, md5 });
 
-    // Start polling transaction in the background (optional, as before)...
+    // Start polling in background
     const result = await pollTransactionUntilSuccess(md5);
 
     if (result.success) {
       console.log('🎉 Payment Success!', result.data);
 
-      // ✅ Add your logic here
-      // await savePaymentToDatabase(result.data);
+      await prisma.orders.create({
+        data: {
+          buyerId: Number(buyerId),
+          gigId: Number(gigId),
+          price: amountFromDB,
+          paymentIntent: md5,
+          isCompleted: true,
+          createdAt: new Date(),
+        },
+      });
+
+      console.log('✅ Payment saved to DB');
     } else {
-      console.log('Payment not completed within time window.');
+      console.log('❌ Payment not completed within time window.');
     }
+
   } catch (error) {
-    console.error('Error generating KHQR:', error);
+    console.error('❌ Error generating KHQR:', error);
     res.status(500).json({ error: 'QR generation failed' });
   }
 });
