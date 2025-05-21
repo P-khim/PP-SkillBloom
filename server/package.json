@@ -4,14 +4,14 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^6.8.1",
     "@stripe/react-stripe-js": "^3.6.0",
     "@stripe/stripe-js": "^7.1.0",
     "bcrypt": "^5.1.0",
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
     "jsonwebtoken": "^9.0.0",
     "multer": "^1.4.5-lts.1",
     "stripe": "^12.18.0",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.9",
-    "prisma": "^6.6.0"
+    "prisma": "^6.8.1"
   },
   "scripts": {
     "start": "node index.js",
@@ -27,5 +27,6 @@
   },
   "author": "",
   "license": "ISC",
+  "keywords": [],
   "description": ""
 }
