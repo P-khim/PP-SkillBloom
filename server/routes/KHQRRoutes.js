@@ -9,10 +9,9 @@ const prisma = new PrismaClient();
 const router = express.Router();
 const BAKONG_BEARER_TOKEN = process.env.BAKONG_BEARER_TOKEN;
 
-// --- Check Transaction Status ---
+// Helper: Check transaction by md5
 async function checkTransaction(md5) {
   const endpoint = 'https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5';
-
   try {
     const response = await axios.post(
       endpoint,
@@ -31,7 +30,7 @@ async function checkTransaction(md5) {
   }
 }
 
-// --- Polling Function ---
+// Poll transaction status until success or timeout
 async function pollTransactionUntilSuccess(md5, maxAttempts = 30, interval = 10000) {
   let attempt = 0;
 
@@ -42,40 +41,34 @@ async function pollTransactionUntilSuccess(md5, maxAttempts = 30, interval = 100
       return { success: true, data: result.data };
     }
 
-    console.log(`⏳ Attempt ${attempt + 1}: Not successful yet.`);
+    console.log(`⏳ Attempt ${attempt + 1}: Still waiting...`);
     await new Promise(resolve => setTimeout(resolve, interval));
     attempt++;
   }
 
-  return { success: false, message: 'Timeout: No success status within 5 minutes.' };
+  return { success: false, message: 'Timeout after 5 minutes.' };
 }
 
-// --- KHQR Payment Route ---
+// ✅ KHQR Payment Initialization Route
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { gigId } = req.body;
     const buyerId = req.userId;
 
-    if (!gigId) {
-      return res.status(400).json({ error: 'gigId is required' });
-    }
+    if (!gigId) return res.status(400).json({ error: 'gigId is required' });
 
-    // Fetch gig price
     const gig = await prisma.gigs.findUnique({
       where: { id: Number(gigId) },
       select: { price: true },
     });
 
-    if (!gig) {
-      return res.status(404).json({ error: 'Gig not found' });
-    }
+    if (!gig) return res.status(404).json({ error: 'Gig not found' });
 
-    const amountFromDB = gig.price;
+    const amount = gig.price;
 
-    // Prepare QR Code Data
     const optionalData = {
       currency: khqrData.currency.usd,
-      amount: amountFromDB,
+      amount,
       mobileNumber: '85586294990',
       storeLabel: 'SkillBloom',
       terminalLabel: 'Cashier_1',
@@ -95,34 +88,59 @@ router.post('/', verifyToken, async (req, res) => {
 
     const qrImage = await QRCode.toDataURL(qr);
 
-    // Send QR code to client
-    res.status(200).json({ qr: qrImage, amount: amountFromDB, md5 });
+    // Save pending order
+    await prisma.orders.create({
+      data: {
+        buyerId: Number(buyerId),
+        gigId: Number(gigId),
+        price: amount,
+        paymentIntent: md5,
+        isCompleted: false,
+        createdAt: new Date(),
+      },
+    });
 
-    // Start polling in background
-    const result = await pollTransactionUntilSuccess(md5);
+    // Send QR & md5 to frontend
+    res.status(200).json({ qr: qrImage, amount, md5 });
 
-    if (result.success) {
-      console.log('🎉 Payment Success!', result.data);
+    // Start background polling to confirm payment
+    (async () => {
+      const result = await pollTransactionUntilSuccess(md5);
 
-      await prisma.orders.create({
-        data: {
-          buyerId: Number(buyerId),
-          gigId: Number(gigId),
-          price: amountFromDB,
-          paymentIntent: md5,
-          isCompleted: true,
-          createdAt: new Date(),
-        },
-      });
-
-      console.log('✅ Payment saved to DB');
-    } else {
-      console.log('❌ Payment not completed within time window.');
-    }
+      if (result.success) {
+        await prisma.orders.update({
+          where: { paymentIntent: md5 },
+          data: { isCompleted: true },
+        });
+        console.log('✅ Payment confirmed & order updated');
+      } else {
+        console.log('❌ KHQR payment not confirmed in time.');
+      }
+    })();
 
   } catch (error) {
-    console.error('❌ Error generating KHQR:', error);
+    console.error('❌ KHQR Error:', error);
     res.status(500).json({ error: 'QR generation failed' });
+  }
+});
+
+// ✅ Status Check Route (used by frontend to detect completion)
+router.get('/status', verifyToken, async (req, res) => {
+  const { md5 } = req.query;
+  if (!md5) return res.status(400).json({ success: false });
+
+  try {
+    const order = await prisma.orders.findUnique({
+      where: { paymentIntent: md5 },
+      select: { isCompleted: true },
+    });
+
+    if (!order) return res.status(404).json({ success: false });
+
+    res.json({ success: order.isCompleted });
+  } catch (err) {
+    console.error('Status check error:', err);
+    res.status(500).json({ success: false });
   }
 });
 

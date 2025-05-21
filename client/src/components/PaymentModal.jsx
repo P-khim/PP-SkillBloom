@@ -16,16 +16,33 @@ const PaymentModal = ({ isOpen, onClose }) => {
 
       fetch('http://localhost:8747/api/checkout', {
         method: 'POST',
-        headers:{
+        headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({gigId}),
+        body: JSON.stringify({ gigId }),
       })
         .then(res => res.json())
         .then(data => {
           setPaymentData(data);
           setLoading(false);
+
+          // 🟢 Start polling for payment confirmation
+          if (data?.md5) {
+            const interval = setInterval(async () => {
+              const res = await fetch(`http://localhost:8747/api/checkout/status?md5=${data.md5}`, {
+                credentials: 'include',
+              });
+              const result = await res.json();
+
+              if (result.success) {
+                clearInterval(interval);
+                window.location.href = '/success';
+              }
+            }, 5000);
+
+            return () => clearInterval(interval); // cleanup
+          }
         })
         .catch(err => {
           console.error('Payment error:', err);
@@ -38,39 +55,31 @@ const PaymentModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    isOpen && (
-      <div style={styles.modalOverlay} onClick={onClose}>
-        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-          <button style={styles.closeButton} onClick={onClose}>&times;</button>
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button style={styles.closeButton} onClick={onClose}>&times;</button>
 
-          {loading && <p style={styles.message}>Loading Bakong QR Payment...</p>}
-          {error && <p style={{ ...styles.message, color: 'red' }}>{error}</p>}
+        {loading && <p style={styles.message}>Loading Bakong QR Payment...</p>}
+        {error && <p style={{ ...styles.message, color: 'red' }}>{error}</p>}
 
-          {paymentData && (
-            <div style={styles.khqrCard}>
-              <div style={styles.khqrHeader}>
-                <span style={styles.khqrHeaderText}>KHQR</span>
-              </div>
+        {paymentData && (
+          <div style={styles.khqrCard}>
+            <div style={styles.khqrHeader}>
+              <span style={styles.khqrHeaderText}>KHQR</span>
+            </div>
 
-              <div style={styles.khqrBody}>
-                <p style={styles.label}>PENG LYKHIM</p>
-                <p style={styles.amount}>{Number(paymentData.amount).toFixed(2)} <span style={styles.currency}>USD</span></p>
-
-                <div style={styles.qrContainer}>
-                  <img
-                    src={paymentData.qr}
-                    alt="Bakong QR Code"
-                    style={styles.qrImage}
-                  />
-                </div>
+            <div style={styles.khqrBody}>
+              <p style={styles.label}>PENG LYKHIM</p>
+              <p style={styles.amount}>{Number(paymentData.amount).toFixed(2)} <span style={styles.currency}>USD</span></p>
+              <div style={styles.qrContainer}>
+                <img src={paymentData.qr} alt="Bakong QR Code" style={styles.qrImage} />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    )
+    </div>
   );
-
 };
 
 // CSS-in-JS styles
