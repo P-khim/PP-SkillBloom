@@ -85,7 +85,7 @@ function AuthWrapper({ type }) {
         >
           <div className="flex flex-col justify-center items-center p-8 gap-7">
             <h3 className="text-2xl font-semibold text-slate-700">
-              {type === "login" ? "Login" : "Sign"}
+              {type === "login" ? "Log" : "Sign"}
               in to SkillBloom
             </h3>
             <div className="flex flex-col gap-5">
