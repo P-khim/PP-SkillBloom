@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { genSalt, hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { renameSync } from "fs";
+import { create } from "domain";
 
 const generatePassword = async (password) => {
   const salt = await genSalt();
@@ -96,6 +97,7 @@ export const getUserInfo = async (req, res, next) => {
           fullName: user?.fullName,
           description: user?.description,
           isProfileSet: user?.isProfileInfoSet,
+          createdAt : user?.createdAt,
         },
       });
     }

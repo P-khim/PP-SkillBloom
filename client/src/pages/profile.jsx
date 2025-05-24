@@ -19,14 +19,17 @@ export default function Profile() {
     userName: "",
     fullName: "",
     description: "",
+    createdAt: "",
   });
 
+  
   useEffect(() => {
     if (userInfo) {
       setData({
         userName: userInfo.username || "",
         fullName: userInfo.fullName || "",
         description: userInfo.description || "",
+        createdAt: userInfo.createdAt || "",
       });
 
       if (userInfo.imageName) {
@@ -102,6 +105,21 @@ export default function Profile() {
 
   if (!isLoaded) return null;
 
+  const formatCreatedAt = (dateString) => {
+    try {
+      if (!dateString) return "Unknown";
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        year: "numeric",
+      }).format(date);
+    } catch (err) {
+      return "Error formatting date";
+    }
+  };
+
+
   return (
     <div className="relative min-h-screen flex justify-center items-center py-24 bg-black">
       <div className="absolute inset-0 z-0">
@@ -147,7 +165,8 @@ export default function Profile() {
             </div>
 
             <h2 className="text-xl font-semibold">{data.userName}</h2>
-            <p className="text-gray-300 text-sm">Member since 2022</p>
+            <p className="text-gray-300 text-sm">Member since {formatCreatedAt(data.createdAt)}</p>
+
           </div>
         </aside>
 
