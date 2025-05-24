@@ -247,7 +247,9 @@ function Navbar() {
                 className="cursor-pointer text-[#1DBF73] font-medium"
                 onClick={handleOrdersNavigate}
               >
-                Orders
+                {isSeller ?(
+                  <div>Sales</div>
+                ) : ( <div>Buy</div>)}
               </li>
 
               {isSeller ? (
