@@ -34,36 +34,43 @@ function AuthWrapper({ type }) {
   };
 
   const handleClick = async () => {
-    try {
-      const { email, password } = values;
-      if (email && password) {
-        const {
-          data: { user, jwt },
-        } = await axios.post(
-          type === "login" ? LOGIN_ROUTE : SIGNUP_ROUTE,
-          { email, password },
-          { withCredentials: true }
-        );
-        setCookies("jwt", { jwt: jwt });
+  try {
+    const { email, password } = values;
+    if (email && password) {
+      const {
+        data: { jwt },
+      } = await axios.post(
+        type === "login" ? LOGIN_ROUTE : SIGNUP_ROUTE,
+        { email, password },
+        { withCredentials: true }
+      );
+
+      // Save the JWT cookie
+      setCookies("jwt", { jwt });
+
+      // ✅ Now fetch user info right after login
+      const { data: userData } = await axios.get("/api/getUserInfo", {
+        withCredentials: true,
+      });
+
+      if (userData?.user) {
+        dispatch({ type: reducerCases.SET_USER, userInfo: userData.user });
         dispatch({ type: reducerCases.CLOSE_AUTH_MODAL });
 
-        if (user) {
-          dispatch({ type: reducerCases.SET_USER, userInfo: user });
-
-          const prevPath = sessionStorage.getItem("prevPath");
-          if (prevPath) {
-            sessionStorage.removeItem("prevPath");
-            router.push(prevPath);
-          } else {
-            router.push("/");
-          }
+        const prevPath = sessionStorage.getItem("prevPath");
+        if (prevPath) {
+          sessionStorage.removeItem("prevPath");
+          router.push(prevPath);
+        } else {
+          router.push("/");
         }
-
       }
-    } catch (err) {
-      console.log(err);
     }
-  };
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 
   useEffect(() => {
     const html = document.querySelector("html");
