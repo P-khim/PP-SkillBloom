@@ -18,7 +18,14 @@ function AuthWrapper({ type }) {
   useEffect(() => {
     if (cookies.jwt) {
       dispatch({ type: reducerCases.CLOSE_AUTH_MODAL });
-      router.push("/dashboard");
+      // router.push("/dashboard");
+      const prevPath = sessionStorage.getItem("prevPath");
+      if(prevPath) {
+        router.push(prevPath);
+        sessionStorage.removeItem("prevPath");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [cookies, dispatch, router]);
 
@@ -42,8 +49,16 @@ function AuthWrapper({ type }) {
 
         if (user) {
           dispatch({ type: reducerCases.SET_USER, userInfo: user });
-          window.location.reload();
+
+          const prevPath = sessionStorage.getItem("prevPath");
+          if (prevPath) {
+            sessionStorage.removeItem("prevPath");
+            router.push(prevPath);
+          } else {
+            router.push("/dashboard");
+          }
         }
+
       }
     } catch (err) {
       console.log(err);

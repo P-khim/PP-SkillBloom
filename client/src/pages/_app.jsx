@@ -3,11 +3,11 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { CookiesProvider } from "react-cookie";
+import { CookiesProvider, useCookies } from "react-cookie";
 import { useEffect, useState } from "react";
 import { StateProvider } from "../context/StateContext";
 import reducer, { initialState } from "../context/StateReducers";
-import { useCookies } from "react-cookie";
+import AuthWrapper from "../components/AuthWrapper";
 
 function AuthGuard({ children }) {
   const router = useRouter();
@@ -19,7 +19,7 @@ function AuthGuard({ children }) {
       router.pathname.includes("/buyer")
     ) {
       if (!cookies.jwt) {
-        router.replace("/"); // Replace instead of push for smoother navigation
+        router.replace("/");
       }
     }
   }, [cookies, router]);
@@ -27,33 +27,43 @@ function AuthGuard({ children }) {
   return children;
 }
 
-export default function App({ Component, pageProps }) {
+function InnerApp({ Component, pageProps }) {
   const [isClient, setIsClient] = useState(false);
+  const [cookies] = useCookies();
+  const [{ showLoginModal, showSignupModal }] = require("../context/StateContext").useStateProvider();
 
   useEffect(() => {
-    setIsClient(true); // This ensures the logic runs only on the client side
+    setIsClient(true);
   }, []);
 
   return (
+    <>
+      <Head>
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <title>SkillBloom</title>
+      </Head>
+      <div className="relative flex flex-col min-h-screen justify-between">
+        <Navbar />
+        <main className={`w-full mx-auto ${isClient && typeof window !== 'undefined' && window.location.pathname !== "/" ? "mt-36" : ""} mb-auto`}>
+          <AuthGuard>
+            <Component {...pageProps} />
+          </AuthGuard>
+        </main>
+        <Footer />
+
+        {/* Conditionally render login/signup modal */}
+        {showLoginModal && <AuthWrapper type="login" />}
+        {showSignupModal && <AuthWrapper type="signup" />}
+      </div>
+    </>
+  );
+}
+
+export default function App(props) {
+  return (
     <CookiesProvider>
       <StateProvider initialState={initialState} reducer={reducer}>
-        <Head>
-          <link rel="shortcut icon" href="/favicon.ico" />
-          <title>SkillBloom</title>
-        </Head>
-        <div className="relative flex flex-col h-screen justify-between">
-          <Navbar />
-          <div
-            className={`${
-              isClient && window.location.pathname !== "/" ? "mt-36" : ""
-            } mb-auto w-full mx-auto`}
-          >
-            <AuthGuard>
-              <Component {...pageProps} />
-            </AuthGuard>
-          </div>
-          <Footer />
-        </div>
+        <InnerApp {...props} />
       </StateProvider>
     </CookiesProvider>
   );
