@@ -5,11 +5,7 @@ import Image from "next/image";
 import { FaFacebook, FaTwitter } from "react-icons/fa";
 import { useStateProvider } from "../context/StateContext";
 import { reducerCases } from "../context/constants";
-import {
-  HOST,
-  SET_USER_IMAGE,
-  SET_USER_INFO,
-} from "../utils/constants";
+import { HOST, SET_USER_IMAGE, SET_USER_INFO } from "../utils/constants";
 
 export default function Profile() {
   const router = useRouter();
@@ -18,7 +14,7 @@ export default function Profile() {
   const [imageHover, setImageHover] = useState(false);
   const [image, setImage] = useState(undefined);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isEditing, setIsEditing] = useState(false); // added
+  const [isEditing, setIsEditing] = useState(false);
   const [data, setData] = useState({
     userName: "",
     fullName: "",
@@ -97,7 +93,7 @@ export default function Profile() {
         },
       });
 
-      setIsEditing(false); // close editor
+      setIsEditing(false);
       router.push("/profile");
     } catch (err) {
       console.error(err);
@@ -108,7 +104,6 @@ export default function Profile() {
 
   return (
     <div className="relative min-h-screen flex justify-center items-center py-24 bg-black">
-      {/* Background */}
       <div className="absolute inset-0 z-0">
         <img
           src="/business.jpg"
@@ -117,7 +112,6 @@ export default function Profile() {
         />
       </div>
 
-      {/* Profile Card */}
       <div className="relative z-10 flex w-[90%] max-w-6xl bg-white bg-opacity-90 rounded-2xl shadow-lg overflow-hidden">
         {/* Sidebar */}
         <aside className="w-full md:w-1/4 bg-gradient-to-b from-gray-900 to-gray-700 rounded-l-2xl p-6 text-white">
@@ -154,16 +148,10 @@ export default function Profile() {
 
             <h2 className="text-xl font-semibold">{data.userName}</h2>
             <p className="text-gray-300 text-sm">Member since 2022</p>
-
-            <nav className="mt-10 space-y-4 w-full text-left">
-              <div className="text-white font-medium">Account</div>
-              <div className="text-gray-400">Security &amp; Privacy</div>
-              <div className="text-gray-400">History</div>
-            </nav>
           </div>
         </aside>
 
-        {/* Info Section */}
+        {/* Main Info */}
         <main className="w-full md:w-3/4 p-8 space-y-8 bg-white rounded-r-2xl">
           <h2 className="text-2xl font-bold text-red-500 mb-4">
             Account Overview
@@ -174,51 +162,48 @@ export default function Profile() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
-            <Display label="Email" value={userInfo.email} />
-            <Display label="Full Name" value={data.fullName} />
-            <Display label="Username" value={data.userName} />
-            <Display label="Description" value={data.description} />
+            <FormField
+              label="Email"
+              value={userInfo.email}
+              readOnly={true}
+            />
+            <FormField
+              label="Full Name"
+              name="fullName"
+              value={data.fullName}
+              onChange={handleChange}
+              editable={isEditing}
+            />
+            <FormField
+              label="Username"
+              name="userName"
+              value={data.userName}
+              onChange={handleChange}
+              editable={isEditing}
+            />
+            <FormField
+              label="Description"
+              name="description"
+              value={data.description}
+              onChange={handleChange}
+              editable={isEditing}
+            />
           </div>
 
-          {/* Toggle Edit Button */}
           <button
-            onClick={() => setIsEditing((prev) => !prev)}
+            onClick={() => setIsEditing(!isEditing)}
             className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium"
           >
             {isEditing ? "Cancel" : "Edit"}
           </button>
 
-          {/* Inputs and Save Button only visible when editing */}
           {isEditing && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
-                <Input
-                  label="Username"
-                  name="userName"
-                  value={data.userName}
-                  onChange={handleChange}
-                />
-                <Input
-                  label="Full Name"
-                  name="fullName"
-                  value={data.fullName}
-                  onChange={handleChange}
-                />
-                <Input
-                  label="Description"
-                  name="description"
-                  value={data.description}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <button
-                onClick={setProfile}
-                className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Save Profile
-              </button>
-            </>
+            <button
+              onClick={setProfile}
+              className="ml-4 mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Save Profile
+            </button>
           )}
 
           <div className="pt-6 border-t">
@@ -246,26 +231,22 @@ export default function Profile() {
   );
 }
 
-function Display({ label, value }) {
+// Unified form field for both view & edit mode
+function FormField({ label, value, name, onChange, editable = false, readOnly = false }) {
   return (
     <div>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="font-medium">{value || "—"}</p>
-    </div>
-  );
-}
-
-function Input({ label, name, value, onChange }) {
-  return (
-    <div>
-      <label className="text-sm text-gray-700 font-semibold">{label}</label>
-      <input
-        type="text"
-        name={name}
-        className="mt-1 block w-full p-2 border border-gray-300 rounded-lg"
-        value={value}
-        onChange={onChange}
-      />
+      <label className="text-xs text-gray-500 block mb-1">{label}</label>
+      {editable && !readOnly ? (
+        <input
+          type="text"
+          name={name}
+          value={value}
+          onChange={onChange}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      ) : (
+        <p className="font-medium">{value || "—"}</p>
+      )}
     </div>
   );
 }
