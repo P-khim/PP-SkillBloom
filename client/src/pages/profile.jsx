@@ -98,7 +98,7 @@ export default function Profile() {
       });
 
       setIsEditing(false); // close editor
-      router.push("/");
+      router.push("/profile");
     } catch (err) {
       console.error(err);
     }

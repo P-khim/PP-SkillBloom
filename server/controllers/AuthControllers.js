@@ -110,12 +110,22 @@ export const setUserInfo = async (req, res, next) => {
       const { userName, fullName, description } = req.body;
       if (userName && fullName && description) {
         const prisma = new PrismaClient();
-        const userNameValid = await prisma.user.findUnique({
-          where: { username: userName },
+
+        // Check if the username exists and belongs to someone else
+        const userWithSameUsername = await prisma.user.findFirst({
+          where: {
+            username: userName,
+            NOT: {
+              id: req.userId, // Ignore the current user's own username
+            },
+          },
         });
-        if (userNameValid) {
+
+        if (userWithSameUsername) {
           return res.status(200).json({ userNameError: true });
         }
+
+        // Safe to update
         await prisma.user.update({
           where: { id: req.userId },
           data: {
@@ -125,6 +135,7 @@ export const setUserInfo = async (req, res, next) => {
             isProfileInfoSet: true,
           },
         });
+
         return res.status(200).send("Profile data updated successfully.");
       } else {
         return res
@@ -143,6 +154,7 @@ export const setUserInfo = async (req, res, next) => {
     throw err;
   }
 };
+
 
 export const setUserImage = async (req, res, next) => {
   try {
