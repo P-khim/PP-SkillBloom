@@ -32,6 +32,10 @@ export default function Profile() {
         createdAt: userInfo.createdAt || "",
       });
 
+      if (userInfo.isProfileSet === false) {
+        setIsEditing(true);
+      }
+
       if (userInfo.imageName) {
         const fileName = image;
         fetch(userInfo.imageName).then(async (response) => {
