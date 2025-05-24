@@ -256,7 +256,7 @@ export const addReview = async (req, res, next) => {
       if (await checkOrder(req.userId, req.params.gigId)) {
         if (req.body.reviewText && req.body.rating) {
           const prisma = new PrismaClient();
-          const newReview = await prisma.review.create({
+          const newReview = await prisma.reviews.create({
             data: {
               rating: req.body.rating,
               reviewText: req.body.reviewText,
