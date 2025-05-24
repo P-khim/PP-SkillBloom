@@ -18,13 +18,13 @@ function AuthWrapper({ type }) {
   useEffect(() => {
     if (cookies.jwt) {
       dispatch({ type: reducerCases.CLOSE_AUTH_MODAL });
-      // router.push("/dashboard");
+      
       const prevPath = sessionStorage.getItem("prevPath");
       if(prevPath) {
         router.push(prevPath);
         sessionStorage.removeItem("prevPath");
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
     }
   }, [cookies, dispatch, router]);
@@ -55,7 +55,7 @@ function AuthWrapper({ type }) {
             sessionStorage.removeItem("prevPath");
             router.push(prevPath);
           } else {
-            router.push("/dashboard");
+            router.push("/");
           }
         }
 
