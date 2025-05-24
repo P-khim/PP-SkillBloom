@@ -7,6 +7,18 @@ import { useStateProvider } from "../context/StateContext";
 import { reducerCases } from "../context/constants";
 import { HOST, SET_USER_IMAGE, SET_USER_INFO } from "../utils/constants";
 
+const genderOptions = ['Male', 'Female', 'Other'];
+const languageOptions = ['Khmer', 'English', 'Thai', 'Chinese', 'Japanese', 'French'];
+const professionOptions = ['Dentist', 'Developer', 'Designer', 'Teacher', 'Engineer', 'Writer'];
+const provinceOptions = [
+  "Phnom Penh", "Kandal", "Takeo", "Kampot", "Kep", "Sihanoukville", "Koh Kong",
+  "Pursat", "Battambang", "Banteay Meanchey", "Siem Reap", "Oddar Meanchey",
+  "Preah Vihear", "Stung Treng", "Ratanakiri", "Mondulkiri", "Kratie", "Kampong Cham",
+  "Tboung Khmum", "Kampong Chhnang", "Kampong Thom", "Kampong Speu", "Prey Veng",
+  "Svay Rieng", "Pailin"
+];
+
+
 export default function Profile() {
   const router = useRouter();
   const [{ userInfo }, dispatch] = useStateProvider();
@@ -20,28 +32,40 @@ export default function Profile() {
     fullName: "",
     description: "",
     createdAt: "",
+    birthday: "",
+    city: "",
+    country: "Cambodia",
+    facebookLink: "",
+    gender: "",
+    languages: "",
+    professions: "",
+    telegramLink: "",
   });
 
-  
   useEffect(() => {
     if (userInfo) {
       setData({
         userName: userInfo.username || "",
         fullName: userInfo.fullName || "",
         description: userInfo.description || "",
-        createdAt: userInfo.createdAt || "",
+        createdAt: userInfo.createdAt || "", 
+        birthday: userInfo.birthday || "",
+        city: userInfo.city || "",
+        country: userInfo.country || "Cambodia",
+        facebookLink: userInfo.facebookLink || "",
+        gender: userInfo.gender || "",
+        languages: (userInfo.languages || []).join(", "),
+        professions: (userInfo.professions || []).join(", "),
+        telegramLink: userInfo.telegramLink || "",
       });
 
-      if (userInfo.isProfileSet === false) {
-        setIsEditing(true);
-      }
+      if (userInfo.isProfileSet === false) setIsEditing(true);
 
       if (userInfo.imageName) {
-        const fileName = image;
         fetch(userInfo.imageName).then(async (response) => {
           const contentType = response.headers.get("content-type");
           const blob = await response.blob();
-          const files = new File([blob], fileName, { type: contentType });
+          const files = new File([blob], image, { type: contentType });
           setImage(files);
         });
       }
@@ -60,14 +84,19 @@ export default function Profile() {
   };
 
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
   const setProfile = async () => {
     try {
       const response = await axios.post(
         SET_USER_INFO,
-        { ...data },
+        {
+          ...data,
+          languages: data.languages.split(",").map((s) => s.trim()),
+          professions: data.professions.split(",").map((s) => s.trim()),
+        },
         { withCredentials: true }
       );
 
@@ -84,9 +113,7 @@ export default function Profile() {
           data: { img },
         } = await axios.post(SET_USER_IMAGE, formData, {
           withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         imageName = img;
       }
@@ -96,6 +123,8 @@ export default function Profile() {
         userInfo: {
           ...userInfo,
           ...data,
+          languages: data.languages.split(",").map((s) => s.trim()),
+          professions: data.professions.split(",").map((s) => s.trim()),
           image: imageName ? HOST + "/" + imageName : userInfo.image,
         },
       });
@@ -110,19 +139,14 @@ export default function Profile() {
   if (!isLoaded) return null;
 
   const formatCreatedAt = (dateString) => {
-    try {
-      if (!dateString) return "Unknown";
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Invalid Date";
-      return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        year: "numeric",
-      }).format(date);
-    } catch (err) {
-      return "Error formatting date";
-    }
+    if (!dateString) return "Unknown";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "Invalid Date";
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      year: "numeric",
+    }).format(date);
   };
-
 
   return (
     <div className="relative min-h-screen flex justify-center items-center py-24 bg-black">
@@ -135,7 +159,6 @@ export default function Profile() {
       </div>
 
       <div className="relative z-10 flex w-[90%] max-w-6xl bg-white bg-opacity-90 rounded-2xl shadow-lg overflow-hidden">
-        {/* Sidebar */}
         <aside className="w-full md:w-1/4 bg-gradient-to-b from-gray-900 to-gray-700 rounded-l-2xl p-6 text-white">
           <div className="flex flex-col items-center text-center">
             <div
@@ -167,86 +190,48 @@ export default function Profile() {
                 </label>
               )}
             </div>
-
             <h2 className="text-xl font-semibold">{data.userName}</h2>
             <p className="text-gray-300 text-sm">Member since {formatCreatedAt(data.createdAt)}</p>
-
           </div>
         </aside>
 
-        {/* Main Info */}
-        <main className="w-full md:w-3/4 p-8 space-y-8 bg-white rounded-r-2xl">
-          <h2 className="text-2xl font-bold text-red-500 mb-4">
-            Account Overview
-          </h2>
+        <main className="w-full md:w-3/4 p-8 space-y-6 bg-white rounded-r-2xl">
+          <h2 className="text-2xl font-bold text-red-500 mb-4">Account Overview</h2>
 
-          {errorMessage && (
-            <p className="text-red-600 font-bold">{errorMessage}</p>
-          )}
+          {errorMessage && <p className="text-red-600 font-bold">{errorMessage}</p>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-700">
-            <FormField
-              label="Email"
-              value={userInfo.email}
-              readOnly={true}
-            />
-            <FormField
-              label="Full Name"
-              name="fullName"
-              value={data.fullName}
-              onChange={handleChange}
-              editable={isEditing}
-            />
-            <FormField
-              label="Username"
-              name="userName"
-              value={data.userName}
-              onChange={handleChange}
-              editable={isEditing}
-            />
-            <FormField
-              label="Description"
-              name="description"
-              value={data.description}
-              onChange={handleChange}
-              editable={isEditing}
-            />
+            <FormField label="Email" value={userInfo.email} readOnly />
+            <FormField label="Full Name" name="fullName" value={data.fullName} onChange={handleChange} editable={isEditing} />
+            <FormField label="Username" name="userName" value={data.userName} onChange={handleChange} editable={isEditing} />
+            <FormField label="Gender" name="gender" value={data.gender} onChange={handleChange} editable={isEditing} type="select" options={genderOptions} />
+            <FormField label="Birthday" name="birthday" value={data.birthday} onChange={handleChange} editable={isEditing} type="date" />
+            <FormField label="City" name="city" value={data.city} onChange={handleChange} editable={isEditing} type="select" options={provinceOptions} />
+
+            <FormField label="Country" name="country" value={data.country} onChange={handleChange} editable={isEditing} />
+            <FormField label="Description" name="description" value={data.description} onChange={handleChange} editable={isEditing} />
+            <FormField label="Languages (comma separated)" name="languages" value={data.languages} onChange={handleChange} editable={isEditing} />
+            <FormField label="Professions (comma separated)" name="professions" value={data.professions} onChange={handleChange} editable={isEditing} />
+            <FormField label="Facebook Link" name="facebookLink" value={data.facebookLink} onChange={handleChange} editable={isEditing} />
+            <FormField label="Telegram Link" name="telegramLink" value={data.telegramLink} onChange={handleChange} editable={isEditing} />
           </div>
 
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="mt-4 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium"
-          >
-            {isEditing ? "Cancel" : "Edit"}
-          </button>
-
-          {isEditing && (
+          <div className="flex gap-4 mt-4">
             <button
-              onClick={setProfile}
-              className="ml-4 mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              onClick={() => setIsEditing(!isEditing)}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium"
             >
-              Save Profile
+              {isEditing ? "Cancel" : "Edit"}
             </button>
-          )}
 
-          <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">
-              Social Links
-            </h3>
-            <div className="flex items-center gap-6">
-              <a
-                href={`mailto:${userInfo.email}`}
-                className="flex items-center gap-2 text-blue-600 hover:underline"
+            {isEditing && (
+              <button
+                onClick={setProfile}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                <FaFacebook /> {userInfo.email}
-              </a>
-              <a
-                href={`mailto:${userInfo.email}`}
-                className="flex items-center gap-2 text-blue-400 hover:underline"
-              >
-                <FaTwitter /> {userInfo.email}
-              </a>
-            </div>
+                Save Profile
+              </button>
+            )}
           </div>
         </main>
       </div>
@@ -254,22 +239,44 @@ export default function Profile() {
   );
 }
 
-// Unified form field for both view & edit mode
-function FormField({ label, value, name, onChange, editable = false, readOnly = false }) {
+function FormField({ label, value, name, onChange, editable = false, readOnly = false, type = "text", options = [] }) {
   return (
     <div>
       <label className="text-xs text-gray-500 block mb-1">{label}</label>
       {editable && !readOnly ? (
-        <input
-          type="text"
-          name={name}
-          value={value}
-          onChange={onChange}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
+        type === "select" ? (
+          <select
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          >
+            <option value="" disabled>Select {label}</option>
+            {options.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        ) : type === "date" ? (
+          <input
+            type="date"
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        ) : (
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        )
       ) : (
         <p className="font-medium">{value || "—"}</p>
       )}
     </div>
   );
 }
+
