@@ -146,7 +146,7 @@ function CreateGigs() {
         </div>
         <div className="grid grid-cols-2 gap-11">
           <div>
-            <label htmlFor="delivery">Delivery Time</label>
+            <label htmlFor="delivery">Delivery Time (Minimum Delivery Day)</label>
             <input
               type="number"
               className={inputClassName}
@@ -159,7 +159,7 @@ function CreateGigs() {
           </div>
           <div>
             <label htmlFor="revision" className={labelClassName}>
-              Revisions
+              Revisions (time)
             </label>
             <input
               type="number"
