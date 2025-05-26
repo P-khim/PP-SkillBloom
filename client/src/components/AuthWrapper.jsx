@@ -49,9 +49,9 @@ function AuthWrapper({ type }) {
       setCookies("jwt", { jwt });
 
       // ✅ Now fetch user info right after login
-      const { data: userData } = await axios.get("/api/getUserInfo", {
-        withCredentials: true,
-      });
+      // const { data: userData } = await axios.get("/api/getUserInfo", {
+      //   withCredentials: true,
+      // });
 
       if (userData?.user) {
         dispatch({ type: reducerCases.SET_USER, userInfo: userData.user });
