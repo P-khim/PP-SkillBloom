@@ -30,11 +30,16 @@ function AuthGuard({ children }) {
 function InnerApp({ Component, pageProps }) {
   const [isClient, setIsClient] = useState(false);
   const [cookies] = useCookies();
-  const [{ showLoginModal, showSignupModal }] = require("../context/StateContext").useStateProvider();
+  const router = useRouter();
+  const [{ showLoginModal, showSignupModal }] =
+    require("../context/StateContext").useStateProvider();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const noLayoutRoutes = ["/dashboard"];
+  const showLayout = !noLayoutRoutes.some(path => router.pathname.startsWith(path));
 
   return (
     <>
@@ -43,21 +48,29 @@ function InnerApp({ Component, pageProps }) {
         <title>SkillBloom</title>
       </Head>
       <div className="relative flex flex-col min-h-screen justify-between">
-        <Navbar />
-        <main className={`w-full mx-auto ${isClient && typeof window !== 'undefined' && window.location.pathname !== "/" ? "mt-36" : ""} mb-auto`}>
+        {showLayout && <Navbar />}
+        <main
+          className={`w-full mx-auto ${
+            isClient &&
+            typeof window !== "undefined" &&
+            window.location.pathname !== "/"
+              ? "mt-36"
+              : ""
+          } mb-auto`}
+        >
           <AuthGuard>
             <Component {...pageProps} />
           </AuthGuard>
         </main>
-        <Footer />
+        {showLayout && <Footer />}
 
-        {/* Conditionally render login/signup modal */}
         {showLoginModal && <AuthWrapper type="login" />}
         {showSignupModal && <AuthWrapper type="signup" />}
       </div>
     </>
   );
 }
+
 
 export default function App(props) {
   return (
