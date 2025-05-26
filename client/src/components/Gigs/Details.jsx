@@ -5,6 +5,7 @@ import Reviews from "../../components/Gigs/Reviews";
 import { FaStar } from "react-icons/fa";
 import { useStateProvider } from "../../context/StateContext";
 import { HOST } from "../../utils/constants";
+import Link from "next/link";
 
 function Details() {
   const [{ gigData, hasOrdered }] = useStateProvider();
@@ -50,12 +51,14 @@ function Details() {
                 </div>
               )}
             </div>
-            <div className="flex gap-2 items-center">
-              <h4 className="text-[#27272a] font-bold">
-                {gigData.createdBy.fullName}
-              </h4>
-              <h6 className="text-[#74767e]">@{gigData.createdBy.username}</h6>
-            </div>
+            <Link href={`/profile/${gigData.createdBy.id}`}>
+              <div className="flex gap-2 items-center">
+                <h4 className="text-[#27272a] font-bold">
+                  {gigData.createdBy.fullName}
+                </h4>
+                <h6 className="text-[#74767e]">@{gigData.createdBy.username}</h6>
+              </div>
+            </Link>
             <div className="flex items-center gap-1">
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (

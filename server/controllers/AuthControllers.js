@@ -181,3 +181,59 @@ export const setUserImage = async (req, res, next) => {
     res.status(500).send("Internal Server Occured");
   }
 };
+
+
+export const getUserInfoById = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (!userId) return res.status(400).send("Invalid user ID");
+
+    const prisma = new PrismaClient();
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        // profileImage: true,
+        username: true,
+        fullName: true,
+        description: true,
+        // isProfileInfoSet: true,
+        createdAt: true,
+        // gender: true,
+        // birthday: true,
+        // city: true,
+        // country: true,
+        // languages: true,
+        // professions: true,
+        // facebookLink: true,
+        // telegramLink: true,
+      },
+    });
+
+    if (!user) return res.status(404).send("User not found");
+
+    return res.status(200).json({
+      id: user.id,
+      email: user.email,
+      imageName: user.profileImage,
+      username: user.username,
+      fullName: user.fullName,
+      description: user.description,
+      isProfileSet: user.isProfileInfoSet,
+      createdAt: user.createdAt,
+      gender: user.gender,
+      birthday: user.birthday,
+      city: user.city,
+      country: user.country,
+      languages: user.languages || [],
+      professions: user.professions || [],
+      facebookLink: user.facebookLink,
+      telegramLink: user.telegramLink,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+};

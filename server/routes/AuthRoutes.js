@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getUserInfo,
+  getUserInfoById,
   login,
   setUserImage,
   setUserInfo,
@@ -16,6 +17,7 @@ authRoutes.post("/signup", signup);
 authRoutes.post("/login", login);
 authRoutes.post("/get-user-info", verifyToken, getUserInfo);
 authRoutes.post("/set-user-info", verifyToken, setUserInfo);
+authRoutes.get("/get-user-info/:id",getUserInfoById);
 
 authRoutes.post(
   "/set-user-image",
