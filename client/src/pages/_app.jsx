@@ -32,22 +32,24 @@ export default function App({ Component, pageProps }) {
   return (
     <CookiesProvider>
       <StateProvider initialState={initialState} reducer={reducer}>
-        <Head>
+        {/* <Head>
           <link rel="shortcut icon" href="/favicon.ico" />
           <title>SkillBloom</title>
-        </Head>
+        </Head> */}
         <div className="relative flex flex-col h-screen justify-between">
-          <Navbar />
+          {/* <Navbar /> */}
           <div
             className={`${
-              typeof window !== "undefined" && window.location.pathname !== "/" ? "mt-36" : ""
+              typeof window !== "undefined" && window.location.pathname !== "/"
+                ? "mt-36"
+                : ""
             } mb-auto w-full mx-auto`}
           >
             <AuthGuard>
               <Component {...pageProps} />
             </AuthGuard>
           </div>
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </StateProvider>
     </CookiesProvider>

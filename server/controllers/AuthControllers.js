@@ -17,33 +17,41 @@ const createToken = (email, userId) => {
 };
 
 export const signup = async (req, res, next) => {
+  const prisma = new PrismaClient();
   try {
-    const prisma = new PrismaClient();
     const { email, password } = req.body;
-    if (email && password) {
-      const user = await prisma.user.create({
-        data: {
-          email,
-          password: await generatePassword(password),
-        },
-      });
-      return res.status(201).json({
-        user: { id: user?.id, email: user?.email },
-        jwt: createToken(email, user.id),
-      });
-    } else {
+
+    if (!email || !password) {
       return res.status(400).send("Email and Password Required");
     }
+
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(409).send("Email already registered");
+    }
+
+    const hashedPassword = await generatePassword(password);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    return res.status(201).json({
+      user: { id: user?.id, email: user?.email },
+      jwt: createToken(email, user.id),
+    });
   } catch (err) {
     console.log(err);
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2002") {
-        return res.status(400).send("Email Already Registered");
-      }
-    } else {
-      return res.status(500).send("Internal Server Error");
-    }
-    throw err;
+    return res.status(500).send("Internal Server Error");
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
