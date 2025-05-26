@@ -21,6 +21,14 @@ model User {
   profileImage String?
   isProfileInfoSet Boolean? @default(false)
   createdAt DateTime @default(now())
+  birthday         DateTime?
+  city             String?
+  country          String?   @default("Cambodia")
+  facebookLink     String?
+  gender           String?
+  languages        String[]
+  professions      String[]
+  telegramLink     String?
   gigs Gigs[]
   orders Orders[]
   reviews Reviews[]
@@ -54,7 +62,7 @@ model Orders {
   buyerId Int
   paymentIntent String @unique
   isCompleted Boolean @default(false)
-  gig Gigs @relation(fields:[gigId],references: [id])
+  gig Gigs @relation(fields:[gigId],references: [id], onDelete: Cascade)
   gigId Int
   price Int
   messages Message[]
@@ -65,7 +73,7 @@ model Reviews {
   createdAt DateTime @default(now())
   rating Int
   reviewText String?
-  gig Gigs @relation(fields: [gigId], references: [id])
+  gig Gigs @relation(fields: [gigId], references: [id], onDelete: Cascade)
   gigId Int
   reviewer User @relation(fields: [reviewerId], references: [id])
   reviewerId Int
@@ -82,6 +90,6 @@ model Message {
   senderId Int
   recipient User @relation("receivedMessages", fields: [recipientId], references: [id])
   recipientId Int
-  order Orders @relation(fields: [orderId], references: [id])
+  order Orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId Int
 }
