@@ -98,6 +98,15 @@ export const getUserInfo = async (req, res, next) => {
           description: user?.description,
           isProfileSet: user?.isProfileInfoSet,
           createdAt : user?.createdAt,
+          birthday: user?.birthday,
+          city: user?.city,
+          country: user?.country,
+          facebookLink: user?.facebookLink,
+          gender: user?.gender,
+          languages: user?.languages,
+          professions: user?.professions,
+          telegramLink: user?.telegramLink,
+
         },
       });
     }
@@ -109,51 +118,75 @@ export const getUserInfo = async (req, res, next) => {
 export const setUserInfo = async (req, res, next) => {
   try {
     if (req?.userId) {
-      const { userName, fullName, description } = req.body;
-      if (userName && fullName && description) {
-        const prisma = new PrismaClient();
+      const {
+        userName,
+        fullName,
+        description,
+        birthday,
+        city,
+        country,
+        facebookLink,
+        gender,
+        languages,
+        professions,
+        telegramLink,
+      } = req.body;
 
-        // Check if the username exists and belongs to someone else
-        const userWithSameUsername = await prisma.user.findFirst({
-          where: {
-            username: userName,
-            NOT: {
-              id: req.userId, // Ignore the current user's own username
-            },
-          },
-        });
-
-        if (userWithSameUsername) {
-          return res.status(200).json({ userNameError: true });
-        }
-
-        // Safe to update
-        await prisma.user.update({
-          where: { id: req.userId },
-          data: {
-            username: userName,
-            fullName,
-            description,
-            isProfileInfoSet: true,
-          },
-        });
-
-        return res.status(200).send("Profile data updated successfully.");
-      } else {
+      // Check required fields
+      if (!userName || !fullName || !description) {
         return res
           .status(400)
           .send("Username, Full Name and description should be included.");
       }
+
+      const prisma = new PrismaClient();
+
+      // Check if the username exists and belongs to someone else
+      const userWithSameUsername = await prisma.user.findFirst({
+        where: {
+          username: userName,
+          NOT: {
+            id: req.userId,
+          },
+        },
+      });
+
+      if (userWithSameUsername) {
+        return res.status(200).json({ userNameError: true });
+      }
+
+      // Safe to update
+      await prisma.user.update({
+        where: { id: req.userId },
+        data: {
+          username: userName,
+          fullName,
+          description,
+          birthday: new Date(birthday) || null,
+          city: city || null,
+          country: country || "Cambodia",
+          facebookLink: facebookLink || null,
+          gender: gender || null,
+          languages: Array.isArray(languages) ? languages : [],
+          professions: Array.isArray(professions) ? professions : [],
+          telegramLink: telegramLink || null,
+          isProfileInfoSet: true,
+        },
+      });
+
+      return res.status(200).send("Profile data updated successfully.");
+    } else {
+      return res.status(401).send("Unauthorized.");
     }
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === "P2002") {
         return res.status(400).json({ userNameError: true });
       }
-    } else {
-      return res.status(500).send("Internal Server Error");
     }
-    throw err;
+
+    console.error("Error updating user profile:", err);
+    return res.status(500).send("Internal Server Error");
   }
 };
 
