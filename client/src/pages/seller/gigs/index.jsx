@@ -1,4 +1,4 @@
-import { GET_USER_GIGS_ROUTE } from "../../../utils/constants";
+import { GET_USER_GIGS_ROUTE, DELETE_GIG_ROUTE } from "../../../utils/constants";
 import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -20,6 +20,21 @@ function Index() {
     };
     getUserGigs();
   }, []);
+
+  const handleDelete = async (id) => {
+    const confirmed = confirm("Are you sure you want to delete this gig?");
+    if(!confirmed) return;
+
+    try{
+      await axios.delete(`${DELETE_GIG_ROUTE}/${id}`, {
+        withCredentials: true,
+      });
+      setGigs((prev) => prev.filter((gigs)=> gigs.id !== id));
+    } catch (err){
+      console.log("Error deleting gig:", err);
+    }
+  };
+
   return (
     <div className="min-h-[80vh] my-10 mt-28 px-32">
       <h3 className="m-5 text-2xl font-semibold">All your Gigs</h3>
@@ -70,6 +85,14 @@ function Index() {
                     >
                       Edit
                     </Link>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => handleDelete(id)}
+                      className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               );
