@@ -51,7 +51,7 @@ function Details() {
                 </div>
               )}
             </div>
-            <Link href={`/profile/${gigData.createdBy.id}`}>
+            <Link href={`/profile/${gigData.createdBy.username}`}>
               <div className="flex gap-2 items-center">
                 <h4 className="text-[#27272a] font-bold">
                   {gigData.createdBy.fullName}

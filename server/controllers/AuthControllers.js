@@ -183,15 +183,18 @@ export const setUserImage = async (req, res, next) => {
 };
 
 
-export const getUserInfoById = async (req, res) => {
+export const getUserInfoByUserName = async (req, res) => {
   try {
-    const userId = parseInt(req.params.id, 10);
-    if (!userId) return res.status(400).send("Invalid user ID");
+    // const userId = parseInt(req.params.id, 10);
+    const username = req.params.username;
+    // if (!userId) return res.status(400).send("Invalid user ID");
+    if (!username) return res.status(400).send("Invalid username");
 
     const prisma = new PrismaClient();
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      // where: { id: userId },
+      where: {username: username},
       select: {
         id: true,
         email: true,
