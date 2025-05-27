@@ -1,34 +1,57 @@
 import { FiUsers, FiClipboard, FiDollarSign } from "react-icons/fi";
 import DashboardLayout from "./layout";
-import React from "react";
+import React, { useState } from "react";
+import RecentActivityTable from "./components/RecentActivityTable";
 
 export default function DashboardHome() {
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <h1 className="text-4xl font-bold text-blue-500 tracking-tight">
-          Welcome to SkillBloom Dashboard
-        </h1>
+      <div className="space-y-10">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 tracking-tight">
+            Welcome to SkillBloom Dashboard
+          </h1>
+          <p className="text-gray-500 text-sm mt-2 sm:mt-0">
+            {new Date().toLocaleString(undefined, {
+              weekday: "short",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Users"
-            value="123"
+            value="1,245"
             icon={<FiUsers />}
             color="sky"
           />
           <StatCard
             title="Pending Gigs"
-            value="5"
+            value="12"
             icon={<FiClipboard />}
             color="yellow"
           />
           <StatCard
             title="Total Revenue"
-            value="$4,500"
+            value="$24,850"
             icon={<FiDollarSign />}
             color="green"
           />
+        </div>
+
+        {/* Recent Activity Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Recent Activity
+          </h2>
+          <RecentActivityTable />
         </div>
       </div>
     </DashboardLayout>
@@ -62,18 +85,13 @@ function StatCard({ title, value, icon, color }) {
       role="region"
       aria-label={title}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className={`text-lg font-semibold ${text}`}>{title}</h2>
-        <div
-          className={`${iconBg} rounded-lg p-3 flex items-center justify-center`}
-          aria-hidden="true"
-        >
-          {React.cloneElement(icon, { className: "w-7 h-7" })}
+        <div className={`${iconBg} rounded-lg p-3`} aria-hidden="true">
+          {React.cloneElement(icon, { className: "w-6 h-6" })}
         </div>
       </div>
-      <p className={`text-4xl font-extrabold ${text} tracking-tight`}>
-        {value}
-      </p>
+      <p className={`text-3xl font-bold ${text} tracking-tight`}>{value}</p>
     </div>
   );
 }
