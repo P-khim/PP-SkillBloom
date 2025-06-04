@@ -1,5 +1,108 @@
-export default function Dashboard(){
-    return(
-        <div className="-mt-36">Welcome Admin</div>
-    )
+"use client";
+
+import { FiUsers, FiClipboard, FiDollarSign } from "react-icons/fi";
+import DashboardLayout from "./layout";
+import React, { useState, useEffect } from "react";
+import RecentActivityTable from "./components/RecentActivityTable";
+
+export default function DashboardHome() {
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    const now = new Date();
+    setFormattedDate(
+      now.toLocaleString(undefined, {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+  }, []);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-10">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 tracking-tight">
+            Welcome to SkillBloom Dashboard
+          </h1>
+          <p className="text-gray-500 text-sm mt-2 sm:mt-0">
+            {formattedDate}
+          </p>
+        </div>
+
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StatCard
+            title="Total Users"
+            value="1,245"
+            icon={<FiUsers />}
+            color="sky"
+          />
+          <StatCard
+            title="Pending Gigs"
+            value="12"
+            icon={<FiClipboard />}
+            color="yellow"
+          />
+          <StatCard
+            title="Total Revenue"
+            value="$24,850"
+            icon={<FiDollarSign />}
+            color="green"
+          />
+        </div>
+
+        {/* Recent Activity Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Recent Activity
+          </h2>
+          <RecentActivityTable />
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function StatCard({ title, value, icon, color }) {
+  const colors = {
+    sky: {
+      bg: "bg-sky-100",
+      iconBg: "bg-sky-200 text-sky-700",
+      text: "text-sky-900",
+    },
+    yellow: {
+      bg: "bg-yellow-100",
+      iconBg: "bg-yellow-200 text-yellow-700",
+      text: "text-yellow-900",
+    },
+    green: {
+      bg: "bg-green-100",
+      iconBg: "bg-green-200 text-green-700",
+      text: "text-green-900",
+    },
+  };
+
+  const { bg, iconBg, text } = colors[color] || colors.sky;
+
+  return (
+    <div
+      className={`${bg} rounded-xl border border-transparent shadow-sm hover:shadow-lg transition p-6 flex flex-col justify-between`}
+      role="region"
+      aria-label={title}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h2 className={`text-lg font-semibold ${text}`}>{title}</h2>
+        <div className={`${iconBg} rounded-lg p-3`} aria-hidden="true">
+          {React.cloneElement(icon, { className: "w-6 h-6" })}
+        </div>
+      </div>
+      <p className={`text-3xl font-bold ${text} tracking-tight`}>{value}</p>
+    </div>
+  );
 }
