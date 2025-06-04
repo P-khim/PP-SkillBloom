@@ -1,62 +1,196 @@
-"use client";
+import React, { useState, useMemo } from "react";
 
-import { useState, useRef, useEffect } from "react";
-import { FiMenu, FiUser, FiLogOut, FiSettings } from "react-icons/fi";
-import SkillBloomLogo from "../../../components/SkillBloomLogo";
+const activityData = [
+  {
+    id: 1,
+    user: "Jane Doe",
+    activity: "Created Gig #452",
+    status: "Pending",
+    date: "2025-05-27",
+  },
+  {
+    id: 2,
+    user: "John Smith",
+    activity: "Completed Gig #420",
+    status: "Completed",
+    date: "2025-05-26",
+  },
+  {
+    id: 3,
+    user: "Alice Chen",
+    activity: "Joined SkillBloom",
+    status: "New",
+    date: "2025-05-25",
+  },
+  {
+    id: 4,
+    user: "Bob Lee",
+    activity: "Updated profile",
+    status: "Completed",
+    date: "2025-05-24",
+  },
+  {
+    id: 5,
+    user: "Emma Watson",
+    activity: "Applied for Gig #460",
+    status: "Pending",
+    date: "2025-05-23",
+  },
+  {
+    id: 6,
+    user: "David Miller",
+    activity: "Withdrawn Gig #419",
+    status: "Completed",
+    date: "2025-05-22",
+  },
+  {
+    id: 7,
+    user: "Lara Croft",
+    activity: "Created Gig #461",
+    status: "Pending",
+    date: "2025-05-21",
+  },
+  {
+    id: 8,
+    user: "Bruce Wayne",
+    activity: "Verified Email",
+    status: "Completed",
+    date: "2025-05-20",
+  },
+  {
+    id: 9,
+    user: "Clark Kent",
+    activity: "Joined SkillBloom",
+    status: "New",
+    date: "2025-05-19",
+  },
+  {
+    id: 10,
+    user: "Diana Prince",
+    activity: "Completed Gig #450",
+    status: "Completed",
+    date: "2025-05-18",
+  },
+  {
+    id: 11,
+    user: "Peter Parker",
+    activity: "Requested refund",
+    status: "Pending",
+    date: "2025-05-17",
+  },
+];
 
-export default function Navbar({ onToggleSidebar }) {
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+export default function RecentActivityTable() {
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 5;
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const filteredData = useMemo(() => {
+    return activityData.filter(
+      (item) =>
+        item.user.toLowerCase().includes(search.toLowerCase()) ||
+        item.activity.toLowerCase().includes(search.toLowerCase()) ||
+        item.status.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
+
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const paginatedData = filteredData.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
 
   return (
-    <header className="bg-white border-b px-4 py-5 flex justify-between items-center shadow-sm fixed top-0 left-0 right-0 z-40">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 rounded hover:bg-gray-100 transition md:hidden"
-          aria-label="Toggle sidebar"
-        >
-          <FiMenu className="h-5 w-5 text-gray-600" />
-        </button>
-        <SkillBloomLogo fillColor={"#404145"} />
+    <div className="bg-white p-6 rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+        <h2 className="text-xl font-semibold text-gray-800">Recent Activity</h2>
+        <input
+          type="text"
+          placeholder="Search activity..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
       </div>
 
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setDropdownOpen(!isDropdownOpen)}
-          className="p-2 rounded-full hover:bg-gray-100 transition"
-          aria-label="User menu"
-        >
-          <FiUser className="h-5 w-5 text-gray-600" />
-        </button>
-
-        {isDropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
-            <a
-              href="#"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              <FiSettings className="mr-2" /> Settings
-            </a>
-            <a
-              href="#"
-              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              <FiLogOut className="mr-2" /> Logout
-            </a>
-          </div>
-        )}
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border-collapse rounded-lg overflow-hidden">
+          <thead className="bg-gray-100 text-gray-700 text-sm uppercase tracking-wide">
+            <tr>
+              <th className="px-6 py-3 text-left">Date</th>
+              <th className="px-6 py-3 text-left">User</th>
+              <th className="px-6 py-3 text-left">Activity</th>
+              <th className="px-6 py-3 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-700 text-sm divide-y divide-gray-200">
+            {paginatedData.length > 0 ? (
+              paginatedData.map(({ id, user, activity, status, date }) => (
+                <tr key={id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">{date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium">
+                    {user}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{activity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                        status === "Completed"
+                          ? "bg-green-100 text-green-700"
+                          : status === "Pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="text-center py-6 text-gray-500">
+                  No matching activity found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-    </header>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between items-center mt-4">
+        <p className="text-sm text-gray-600">
+          Page {page} of {totalPages}
+        </p>
+        <div className="space-x-2">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              page === 1
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              page === totalPages
+                ? "bg-gray-200 text-gray-400"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
