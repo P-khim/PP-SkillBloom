@@ -159,6 +159,14 @@ export default function Profile() {
     }).format(date);
   };
 
+  const toDateInputValue = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date)) return "";
+    return date.toISOString().split("T")[0];
+  };
+
+
   return (
     <div className="relative min-h-screen flex justify-center items-center py-24 bg-black">
       <div className="absolute inset-0 z-0">
@@ -216,7 +224,7 @@ export default function Profile() {
             <FormField label="Full Name" name="fullName" value={data.fullName} onChange={handleChange} editable={isEditing} />
             <FormField label="Username" name="userName" value={data.userName} onChange={handleChange} editable={isEditing} />
             <FormField label="Gender" name="gender" value={data.gender} onChange={handleChange} editable={isEditing} type="select" options={genderOptions} />
-            <FormField label="Birthday" name="birthday" value={formatBirtday(data.birthday)} onChange={handleChange} editable={isEditing} type="date" />
+            <FormField label="Birthday" name="birthday" value={isEditing ? toDateInputValue(data.birthday) : formatBirtday(data.birthday)} onChange={handleChange} editable={isEditing} type={isEditing ? "date" : "text"} />
             <FormField label="City" name="city" value={data.city} onChange={handleChange} editable={isEditing} type="select" options={provinceOptions} />
 
             <FormField label="Country" name="country" value={data.country} onChange={handleChange} readOnly />
