@@ -4,9 +4,11 @@ import { FiUsers, FiClipboard, FiDollarSign } from "react-icons/fi";
 import DashboardLayout from "./layout";
 import React, { useState, useEffect } from "react";
 import RecentActivityTable from "./components/RecentActivityTable";
+import { HOST } from "../../utils/constants";
 
 export default function DashboardHome() {
   const [formattedDate, setFormattedDate] = useState("");
+  const [totalUsers, setTotalUsers] = useState(null);
 
   useEffect(() => {
     const now = new Date();
@@ -21,6 +23,32 @@ export default function DashboardHome() {
       })
     );
   }, []);
+
+  useEffect(() => {
+  const fetchUserCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${HOST}/api/auth/get-all-users`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch users");
+
+      const data = await res.json();
+      const count = data.users ? data.users.length : 0;
+      setTotalUsers(count);
+    } catch (error) {
+      console.error("Error fetching user count:", error);
+      setTotalUsers("N/A");
+    }
+  };
+
+  fetchUserCount();
+}, []);
+
 
   return (
     <DashboardLayout>
@@ -39,7 +67,7 @@ export default function DashboardHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Users"
-            value="1,245"
+            value={totalUsers !== null ? totalUsers.toLocaleString() : "Loading...."}
             icon={<FiUsers />}
             color="sky"
           />
