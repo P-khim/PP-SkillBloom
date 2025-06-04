@@ -1,46 +1,53 @@
 import DashboardLayout from "./layout";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
-import { useState, useMemo } from "react";
-
-const initialUsers = [
-  { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
-  { id: 2, name: "Bob Smith", email: "bob@example.com", role: "User" },
-  { id: 3, name: "Carol Davis", email: "carol@example.com", role: "User" },
-  { id: 4, name: "David Brown", email: "david@example.com", role: "Moderator" },
-  { id: 5, name: "Eva Green", email: "eva@example.com", role: "User" },
-  { id: 6, name: "Frank Wilson", email: "frank@example.com", role: "Admin" },
-  { id: 7, name: "Grace Lee", email: "grace@example.com", role: "User" },
-  { id: 8, name: "Henry Miller", email: "henry@example.com", role: "User" },
-  {
-    id: 9,
-    name: "Isabella Moore",
-    email: "isabella@example.com",
-    role: "User",
-  },
-  { id: 10, name: "Jack Taylor", email: "jack@example.com", role: "Moderator" },
-];
-
+import { useState, useEffect, useMemo } from "react";
+import { HOST } from "../../utils/constants";
 const USERS_PER_PAGE = 5;
 
 export default function UserList() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  // Filter users by name or email
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Replace with your token key
+        const res = await fetch(`${HOST}/api/auth/get-all-users`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch users.");
+        }
+
+        const data = await res.json();
+        setUsers(data.users || []);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const filteredUsers = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return users.filter(
       (user) =>
-        user.name.toLowerCase().includes(term) ||
-        user.email.toLowerCase().includes(term)
+        user.fullName?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term)
     );
   }, [searchTerm, users]);
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
 
-  // Get users to show on current page
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * USERS_PER_PAGE,
     currentPage * USERS_PER_PAGE
@@ -90,73 +97,75 @@ export default function UserList() {
           </div>
         </div>
 
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200 rounded-lg">
-            <thead className="bg-gray-50 rounded-t-lg">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
-                  No.
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedUsers.map(({ id, name, email, role }, index) => (
-                <tr key={id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                    {(currentPage - 1) * USERS_PER_PAGE + index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                    {name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {role}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(id)}
-                      className="inline-flex items-center px-3 py-1 rounded text-blue-600 hover:bg-blue-100 focus:outline-none"
-                      aria-label={`Edit user ${name}`}
-                    >
-                      <FiEdit2 className="mr-1" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(id)}
-                      className="inline-flex items-center px-3 py-1 rounded text-red-600 hover:bg-red-100 focus:outline-none"
-                      aria-label={`Delete user ${name}`}
-                    >
-                      <FiTrash2 className="mr-1" /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {paginatedUsers.length === 0 && (
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">Loading users...</div>
+        ) : (
+          <div className="overflow-x-auto bg-white rounded-lg shadow">
+            <table className="min-w-full divide-y divide-gray-200 rounded-lg">
+              <thead className="bg-gray-50 rounded-t-lg">
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="text-center py-6 text-gray-500 italic"
-                  >
-                    No users found.
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                    No.
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                    Actions
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedUsers.map((user, index) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                      {(currentPage - 1) * USERS_PER_PAGE + index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                      {user.fullName || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      {user.email || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      {user.role || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                      <button
+                        onClick={() => handleEdit(user.id)}
+                        className="inline-flex items-center px-3 py-1 rounded text-blue-600 hover:bg-blue-100 focus:outline-none"
+                      >
+                        <FiEdit2 className="mr-1" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="inline-flex items-center px-3 py-1 rounded text-red-600 hover:bg-red-100 focus:outline-none"
+                      >
+                        <FiTrash2 className="mr-1" /> Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {paginatedUsers.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-6 text-gray-500 italic"
+                    >
+                      No users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="mt-4 flex justify-center space-x-2">
@@ -176,7 +185,6 @@ export default function UserList() {
                     ? "bg-blue-600 text-white border-blue-600"
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                 }`}
-                aria-current={currentPage === i + 1 ? "page" : undefined}
               >
                 {i + 1}
               </button>

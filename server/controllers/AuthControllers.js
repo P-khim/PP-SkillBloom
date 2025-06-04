@@ -273,3 +273,34 @@ export const getUserInfoByUserName = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+export const getAllUsers = async (req,res) => {
+  const prisma = new PrismaClient();
+  try{
+    // if(req.role != "admin") {
+    //   return res.status(403).json({message : "Forbidden"});
+    // }
+    const users = await prisma.user.findMany({
+      select:{
+        id: true,
+        email: true,
+        username: true,
+        fullName: true,
+        profileImage: true,
+        isProfileInfoSet: true,
+        createdAt: true,
+        city: true,
+        role: true,
+        country: true,
+        gender: true,
+        professions: true,
+      }, orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return res.status(200).json({users});
+  } catch (err){
+    console.error("Error fetching all users:", err);
+    return res.status(500).json({message: "Internal Server Error"});
+  }
+};
