@@ -106,7 +106,7 @@ export const getUserInfo = async (req, res, next) => {
           languages: user?.languages,
           professions: user?.professions,
           telegramLink: user?.telegramLink,
-
+          role: user?.role,
         },
       });
     }
