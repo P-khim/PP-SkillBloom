@@ -9,50 +9,13 @@ import { GET_USER_INFO, HOST } from "../../utils/constants";
 import { useStateProvider } from "../../context/StateContext";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+import DashboardGuard from "./components/DashboardGuard";
 
 export default function DashboardHome() {
   const router = useRouter();
   const [cookies] = useCookies(["jwt"]);
   const [formattedDate, setFormattedDate] = useState("");
   const [totalUsers, setTotalUsers] = useState(null);
-  const [{ userInfo }, dispatch] = useStateProvider();
-
-  // Route protection
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!cookies.jwt) {
-        router.push("/login");
-        return;
-      }
-
-      try {
-        const {
-          data: { user },
-        } = await axios.post(
-          GET_USER_INFO,
-          {},
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${cookies.jwt}`,
-            },
-          }
-        );
-
-        // Optionally save user info in context
-        dispatch?.({ type: "SET_USER_INFO", payload: user });
-
-        if (user.role !== "admin") {
-          router.push("/");
-        }
-      } catch (err) {
-        console.error(err);
-        router.push("/login");
-      }
-    };
-
-    checkAccess();
-  }, [cookies.jwt, dispatch, router]);
 
   // Format current date
   useEffect(() => {
@@ -96,7 +59,8 @@ export default function DashboardHome() {
   }, []);
 
   return (
-    <DashboardLayout>
+    <DashboardGuard>
+      <DashboardLayout>
       <div className="space-y-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -139,6 +103,7 @@ export default function DashboardHome() {
         </div>
       </div>
     </DashboardLayout>
+    </DashboardGuard>
   );
 }
 

@@ -2,6 +2,7 @@ import DashboardLayout from "./layout";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import { HOST } from "../../utils/constants";
+import DashboardGuard from "./components/DashboardGuard";
 const USERS_PER_PAGE = 5;
 
 export default function UserList() {
@@ -73,7 +74,8 @@ export default function UserList() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardGuard>
+        <DashboardLayout>
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <h2 className="text-2xl font-bold">Manage Users</h2>
@@ -200,5 +202,6 @@ export default function UserList() {
         )}
       </div>
     </DashboardLayout>
+    </DashboardGuard>
   );
 }

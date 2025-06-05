@@ -8,6 +8,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { formatDistanceToNow } from "date-fns";
+import DashboardGuard from "./components/DashboardGuard";
 
 export default function Notifications() {
   const notifications = [
@@ -71,6 +72,7 @@ export default function Notifications() {
   };
 
   return (
+    <DashboardGuard>
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-2">
@@ -107,5 +109,6 @@ export default function Notifications() {
         )}
       </div>
     </DashboardLayout>
+    </DashboardGuard>
   );
 }

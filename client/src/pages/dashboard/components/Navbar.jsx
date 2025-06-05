@@ -49,7 +49,7 @@ export default function Navbar({ onToggleSidebar }) {
               <FiSettings className="mr-2" /> Settings
             </a>
             <a
-              href="#"
+              href="/"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
               <FiLogOut className="mr-2" /> Logout

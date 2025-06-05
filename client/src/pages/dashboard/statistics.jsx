@@ -11,6 +11,7 @@ import {
   FiRepeat,
 } from "react-icons/fi";
 import DashboardLayout from "./layout";
+import DashboardGuard from "./components/DashboardGuard";
 
 export default function Statistics() {
   const chartRef = useRef(null);
@@ -135,6 +136,7 @@ export default function Statistics() {
   ];
 
   return (
+    <DashboardGuard>
     <DashboardLayout>
       <div className="p-4">
         <div className="flex justify-between items-center mb-6">
@@ -187,5 +189,6 @@ export default function Statistics() {
         </div>
       </div>
     </DashboardLayout>
+    </DashboardGuard>
   );
 }
