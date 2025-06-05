@@ -39,7 +39,7 @@ export const signup = async (req, res, next) => {
     console.log(err);
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
       if (err.code === "P2002") {
-        return res.status(400).send("Email Already Registered");
+        return res.status(409).send("Email Already Registered");
       }
     } else {
       return res.status(500).send("Internal Server Error");
@@ -64,7 +64,7 @@ export const login = async (req, res, next) => {
 
       const auth = await compare(password, user.password);
       if (!auth) {
-        return res.status(400).send("Invalid Password");
+        return res.status(401).send("Invalid Password");
       }
 
       return res.status(200).json({

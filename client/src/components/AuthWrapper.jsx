@@ -11,6 +11,7 @@ import { reducerCases } from "../context/constants";
 function AuthWrapper({ type }) {
   const [cookies, setCookies] = useCookies();
   const [{ showLoginModal, showSignupModal }, dispatch] = useStateProvider();
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const [values, setValues] = useState({ email: "", password: "" });
@@ -35,7 +36,20 @@ function AuthWrapper({ type }) {
 
   const handleClick = async () => {
   try {
+    setError("");
     const { email, password } = values;
+     if (!email && !password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+    if(!email){
+      setError("Please enter email");
+      return;
+    }
+    if(!password){
+      setError("Please enter password");
+      return;
+    }
     if (email && password) {
       const {
         data: { jwt },
@@ -67,6 +81,17 @@ function AuthWrapper({ type }) {
       }
     }
   } catch (err) {
+    if (err.response && err.response.data && err.response.data.message) {
+      setError(err.response.data.message);
+    } else if(err.response && err.response.status === 404){
+      setError("User not found");
+    } else if(err.response && err.response.status === 401){
+      setError("Incorrect password");
+    } else if (err.response && err.response.status === 409) {
+      setError("User already exists.");
+    } else {
+      setError("Something went wrong. Please try again.");
+    }
     console.log(err);
   }
 };
@@ -147,6 +172,7 @@ function AuthWrapper({ type }) {
               >
                 Continue
               </button>
+              {error && <p className="text-red-500 text-sm text-center w-80">{error}</p>}
             </div>
           </div>
           <div className="py-5 w-full flex items-center justify-center border-t border-slate-400">
