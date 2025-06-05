@@ -74,12 +74,12 @@ export default function DashboardHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Users"
-            value={
-              totalUsers !== null ? totalUsers.toLocaleString() : "Loading..."
-            }
+            value={totalUsers !== null ? totalUsers.toLocaleString() : "Loading..."}
             icon={<FiUsers />}
             color="sky"
+            onClick={() => router.push("/dashboard/users")}
           />
+
           <StatCard
             title="Pending Gigs"
             value="12"
@@ -91,6 +91,7 @@ export default function DashboardHome() {
             value="$24,850"
             icon={<FiDollarSign />}
             color="green"
+            onClick={() => router.push("/dashboard/statistics")}
           />
         </div>
 
@@ -107,7 +108,7 @@ export default function DashboardHome() {
   );
 }
 
-function StatCard({ title, value, icon, color }) {
+function StatCard({ title, value, icon, color, onClick }) {
   const colors = {
     sky: {
       bg: "bg-sky-100",
@@ -130,9 +131,10 @@ function StatCard({ title, value, icon, color }) {
 
   return (
     <div
-      className={`${bg} rounded-xl border border-transparent shadow-sm hover:shadow-lg transition p-6 flex flex-col justify-between`}
+      className={`${bg} rounded-xl border border-transparent shadow-sm hover:shadow-lg transition p-6 flex flex-col justify-between cursor-pointer`}
       role="region"
       aria-label={title}
+      onClick={onClick}
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className={`text-lg font-semibold ${text}`}>{title}</h2>
@@ -144,3 +146,4 @@ function StatCard({ title, value, icon, color }) {
     </div>
   );
 }
+
