@@ -74,8 +74,11 @@ export const getGigData = async (req, res, next) => {
   try {
     if (req.params.gigId) {
       const prisma = new PrismaClient();
-      const gig = await prisma.gigs.findUnique({
-        where: { id: parseInt(req.params.gigId) },
+      const gig = await prisma.gigs.findFirst({
+        where: { 
+          id: parseInt(req.params.gigId),
+          isApproved: true,
+        },
         include: {
           reviews: {
             include: {
@@ -228,6 +231,10 @@ export const searchGigs = async (req, res, next) => {
 const createSearchQuery = (searchTerm, category) => {
   const query = {
     where: {
+      AND: [
+        { isApproved: true},
+        { approvalStatus: "approved"},
+      ],
       OR: [],
     },
     include: {
