@@ -1,15 +1,60 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { FiUsers, FiClipboard, FiDollarSign } from "react-icons/fi";
 import DashboardLayout from "./layout";
-import React, { useState, useEffect } from "react";
 import RecentActivityTable from "./components/RecentActivityTable";
-import { HOST } from "../../utils/constants";
+import { GET_USER_INFO, HOST } from "../../utils/constants";
+import { useStateProvider } from "../../context/StateContext";
+import { useCookies } from "react-cookie";
+import axios from "axios";
 
 export default function DashboardHome() {
+  const router = useRouter();
+  const [cookies] = useCookies(["jwt"]);
   const [formattedDate, setFormattedDate] = useState("");
   const [totalUsers, setTotalUsers] = useState(null);
+  const [{ userInfo }, dispatch] = useStateProvider();
 
+  // Route protection
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!cookies.jwt) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const {
+          data: { user },
+        } = await axios.post(
+          GET_USER_INFO,
+          {},
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${cookies.jwt}`,
+            },
+          }
+        );
+
+        // Optionally save user info in context
+        dispatch?.({ type: "SET_USER_INFO", payload: user });
+
+        if (user.role !== "admin") {
+          router.push("/");
+        }
+      } catch (err) {
+        console.error(err);
+        router.push("/login");
+      }
+    };
+
+    checkAccess();
+  }, [cookies.jwt, dispatch, router]);
+
+  // Format current date
   useEffect(() => {
     const now = new Date();
     setFormattedDate(
@@ -24,31 +69,31 @@ export default function DashboardHome() {
     );
   }, []);
 
+  // Fetch user count
   useEffect(() => {
-  const fetchUserCount = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${HOST}/api/auth/get-all-users`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const fetchUserCount = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${HOST}/api/auth/get-all-users`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (!res.ok) throw new Error("Failed to fetch users");
+        if (!res.ok) throw new Error("Failed to fetch users");
 
-      const data = await res.json();
-      const count = data.users ? data.users.length : 0;
-      setTotalUsers(count);
-    } catch (error) {
-      console.error("Error fetching user count:", error);
-      setTotalUsers("N/A");
-    }
-  };
+        const data = await res.json();
+        const count = data.users ? data.users.length : 0;
+        setTotalUsers(count);
+      } catch (error) {
+        console.error("Error fetching user count:", error);
+        setTotalUsers("N/A");
+      }
+    };
 
-  fetchUserCount();
-}, []);
-
+    fetchUserCount();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -58,16 +103,16 @@ export default function DashboardHome() {
           <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 tracking-tight">
             Welcome to SkillBloom Dashboard
           </h1>
-          <p className="text-gray-500 text-sm mt-2 sm:mt-0">
-            {formattedDate}
-          </p>
+          <p className="text-gray-500 text-sm mt-2 sm:mt-0">{formattedDate}</p>
         </div>
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Total Users"
-            value={totalUsers !== null ? totalUsers.toLocaleString() : "Loading...."}
+            value={
+              totalUsers !== null ? totalUsers.toLocaleString() : "Loading..."
+            }
             icon={<FiUsers />}
             color="sky"
           />
