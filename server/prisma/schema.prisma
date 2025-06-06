@@ -21,6 +21,12 @@ enum Status{
   rejected
 }
 
+enum DeleteStatus {
+  none        // means no deletion requested
+  requested   // user/admin requested deletion
+  deleted     // gig has been deleted (if using soft delete)
+}
+
 model User {
   id Int        @id @default(autoincrement())
   email String  @unique
@@ -66,7 +72,10 @@ model Gigs {
   reviews Reviews[]
 
   isApproved Boolean @default(false)
-  approvalStatus Status @default(pending) 
+  approvalStatus Status @default(pending)
+   
+  isDeletePending Boolean @default(false)
+  deleteStatus DeleteStatus @default(none)
 }
 
 
