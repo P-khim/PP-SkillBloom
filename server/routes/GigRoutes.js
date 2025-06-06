@@ -11,6 +11,9 @@ import {
   getUnapprovedGigs,
   approveGig,
   rejectGig,
+  getUnapprovedGigsDelete,
+  approveGigDelete,
+  rejectGigDelete,
 } from "../controllers/GigsController.js";
 import multer from "multer";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
@@ -31,3 +34,6 @@ gigRoutes.delete("/delete/:gigId", verifyToken, deleteGig);
 gigRoutes.get("/unapproved", getUnapprovedGigs);
 gigRoutes.put("/approve/:gigId", verifyToken,approveGig);
 gigRoutes.put("/reject/:gigId", verifyToken, rejectGig);
+gigRoutes.get("/unapproved-delete",getUnapprovedGigsDelete);
+gigRoutes.put("/approve-delete/:gigId",verifyToken, approveGigDelete);
+gigRoutes.put("/reject-delete/:gigId",verifyToken, rejectGigDelete);

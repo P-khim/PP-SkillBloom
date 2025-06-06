@@ -192,24 +192,25 @@ export const deleteGig = async (req, res, next) => {
 
     if (!gig) return res.status(404).send("Gig not found");
 
-    // Delete associated image files
-    gig.images?.forEach((image) => {
-      if (existsSync(`uploads/${image}`)) {
-        unlinkSync(`uploads/${image}`);
-      }
-    });
-
-    // Delete the gig
-    await prisma.gigs.delete({
+    // Only mark for deletion (soft delete request)
+    const updatedGig = await prisma.gigs.update({
       where: { id: parseInt(gigId) },
+      data: {
+        isDeletePending: true,
+        deleteStatus: "requested", // enum: none, requested, deleted
+      },
     });
 
-    return res.status(200).send("Gig deleted successfully");
+    return res.status(200).json({
+      message: "Gig deletion request submitted",
+      gig: updatedGig,
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).send("Internal Server Error");
   }
 };
+
 
 
 export const searchGigs = async (req, res, next) => {
@@ -390,6 +391,111 @@ export const rejectGig = async (req, res) => {
       return res.status(404).json({ message: "Gig not found" });
     }
 
+    const updated = await prisma.gigs.update({
+      where: { id },
+      data: {
+        isApproved: false,
+        approvalStatus: "rejected",
+      },
+    });
+
+    return res.status(200).json({ message: "Gig rejected", gig: updated });
+  } catch (error) {
+    console.error("Error rejecting gig:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getUnapprovedGigsDelete = async (req, res) => {
+  try {
+    const prisma = new PrismaClient();
+    const unapprovedGigsDelete = await prisma.gigs.findMany({
+      where: {
+        isDeletePending: true, 
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        deleteStatus: true,
+      },
+    });
+    return res.status(200).json({ gigs: unapprovedGigsDelete });
+  } catch (err) {
+    console.error("Error fetching unapproved gigs:", err);
+    return res.status(500).send("Internal server Error");
+  }
+};
+
+export const approveGigDelete = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { gigId } = req.params;
+
+  try {
+    const id = Number(gigId);
+    const gig = await prisma.gigs.findUnique({ where: { id } });
+
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    if (gig.isDeletePending) {
+      // Delete images
+      gig.images?.forEach((image) => {
+        const path = `uploads/${image}`;
+        if (existsSync(path)) unlinkSync(path);
+      });
+
+      // Delete gig
+      await prisma.gigs.delete({ where: { id } });
+
+      return res.status(200).json({ message: "Gig deleted (delete approved)" });
+    }
+
+    // Approve gig normally
+    const updated = await prisma.gigs.update({
+      where: { id },
+      data: {
+        isApproved: true,
+        approvalStatus: "approved",
+      },
+    });
+
+    return res.status(200).json({ message: "Gig approved", gig: updated });
+  } catch (error) {
+    console.error("Error approving gig:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const rejectGigDelete = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { gigId } = req.params;
+
+  try {
+    const id = Number(gigId);
+    const gig = await prisma.gigs.findUnique({ where: { id } });
+
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    if (gig.isDeletePending) {
+      const updated = await prisma.gigs.update({
+        where: { id },
+        data: {
+          isDeletePending: false,
+          deleteStatus: "none", // reset status
+        },
+      });
+
+      return res.status(200).json({ message: "Gig deletion rejected", gig: updated });
+    }
+
+    // Normal rejection
     const updated = await prisma.gigs.update({
       where: { id },
       data: {

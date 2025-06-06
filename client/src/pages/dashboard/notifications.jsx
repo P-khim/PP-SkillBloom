@@ -16,6 +16,7 @@ import axios from "axios";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
+  const [notificationsDelete, setNotificationsDelete] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchUnapprovedGigs = async () => {
@@ -30,6 +31,7 @@ export default function Notifications() {
         message: `Gig "${gig.title}" is pending approval.`,
         type: "warning",
         timestamp: new Date(gig.createdAt),
+        isDeleteRequest: false,
       }));
       setNotifications(dynamicNotifications);
     } catch (error) {
@@ -37,15 +39,43 @@ export default function Notifications() {
     }
   };
 
-  const handleAction = async (gigId, action) => {
+  const fetchUnapprovedGigsDelete = async () => {
+    try {
+      const { data } = await axios.get(
+        "http://localhost:8747/api/gigs/unapproved-delete",
+        { withCredentials: true }
+      );
+      const dynamicNotifications = data.gigs.map((gig) => ({
+        id: gig.id,
+        title: gig.title,
+        message: `Gig "${gig.title}" is requested for deletion.`,
+        type: "danger",
+        timestamp: new Date(gig.createdAt),
+        isDeleteRequest: true,
+      }));
+      setNotificationsDelete(dynamicNotifications);
+    } catch (error) {
+      console.error("Failed to fetch unapproved delete gigs", error);
+    }
+  };
+
+  const handleAction = async (gigId, action, isDeleteRequest = false) => {
     setLoading(true);
     try {
+      const routeAction = isDeleteRequest
+        ? `${action}-delete` // "delete-approve" or "delete-reject"
+        : action;            // "approve" or "reject"
       await axios.put(
-        `http://localhost:8747/api/gigs/${action}/${gigId}`,
+        `http://localhost:8747/api/gigs/${routeAction}/${gigId}`,
         {},
         { withCredentials: true }
       );
-      setNotifications((prev) => prev.filter((n) => n.id !== gigId));
+
+      if (isDeleteRequest) {
+        setNotificationsDelete((prev) => prev.filter((n) => n.id !== gigId));
+      } else {
+        setNotifications((prev) => prev.filter((n) => n.id !== gigId));
+      }
     } catch (error) {
       console.error(`Failed to ${action} gig`, error);
     } finally {
@@ -55,6 +85,7 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchUnapprovedGigs();
+    fetchUnapprovedGigsDelete();
   }, []);
 
   const typeStyles = {
@@ -90,6 +121,8 @@ export default function Notifications() {
     },
   };
 
+  const allNotifications = [...notifications, ...notificationsDelete];
+
   return (
     <DashboardGuard>
       <DashboardLayout>
@@ -99,45 +132,51 @@ export default function Notifications() {
             <h2 className="text-2xl font-semibold">Notifications</h2>
           </div>
 
-          {notifications.length > 0 ? (
+          {allNotifications.length > 0 ? (
             <ul className="space-y-4">
-              {notifications.map(({ id, title, message, type, timestamp }) => {
-                const style = typeStyles[type] || typeStyles.default;
-                return (
-                  <li
-                    key={id}
-                    className={`flex flex-col md:flex-row md:items-start gap-3 p-4 rounded-md border-l-4 shadow-sm transition-all duration-200 ${style.bg} ${style.border}`}
-                  >
-                    <div>{style.icon}</div>
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${style.text}`}>
-                        {message}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(timestamp), {
-                          addSuffix: true,
-                        })}
-                      </p>
-                      <div className="flex gap-2 mt-3">
-                        <button
-                          disabled={loading}
-                          onClick={() => handleAction(id, "approve")}
-                          className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          disabled={loading}
-                          onClick={() => handleAction(id, "reject")}
-                          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
+              {allNotifications.map(
+                ({ id, title, message, type, timestamp, isDeleteRequest }) => {
+                  const style = typeStyles[type] || typeStyles.default;
+                  return (
+                    <li
+                      key={id}
+                      className={`flex flex-col md:flex-row md:items-start gap-3 p-4 rounded-md border-l-4 shadow-sm transition-all duration-200 ${style.bg} ${style.border}`}
+                    >
+                      <div>{style.icon}</div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${style.text}`}>
+                          {message}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatDistanceToNow(new Date(timestamp), {
+                            addSuffix: true,
+                          })}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            disabled={loading}
+                            onClick={() =>
+                              handleAction(id, "approve", isDeleteRequest)
+                            }
+                            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            disabled={loading}
+                            onClick={() =>
+                              handleAction(id, "reject", isDeleteRequest)
+                            }
+                            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Reject
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                );
-              })}
+                    </li>
+                  );
+                }
+              )}
             </ul>
           ) : (
             <p className="text-gray-500 italic">You have no notifications.</p>

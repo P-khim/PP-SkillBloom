@@ -17,6 +17,7 @@ export default function DashboardHome() {
   const [formattedDate, setFormattedDate] = useState("");
   const [totalUsers, setTotalUsers] = useState(null);
   const [pendingGigs, setPendingGigs] = useState(null);
+  const [pendingGigsDelete, setPendingGigsDelete] = useState(null);
 
   // Format current date
   useEffect(() => {
@@ -75,6 +76,23 @@ export default function DashboardHome() {
     fetchPendingGigs();
   }, []);
 
+  useEffect(() => {
+    const fetchDeletePendingGigs = async () => {
+      try {
+        const res = await axios.get(`${HOST}/api/gigs/unapproved-delete`, {
+          withCredentials: true,
+        });
+        const count = res.data?.gigs?.length || 0;
+        setPendingGigsDelete(count); // ✅ FIXED
+      } catch (error) {
+        console.error("Error fetching delete pending gigs:", error);
+        setPendingGigsDelete("N/A"); // ✅ FIXED
+      }
+    };
+
+    fetchDeletePendingGigs();
+  }, []);
+
 
   return (
     <DashboardGuard>
@@ -100,7 +118,7 @@ export default function DashboardHome() {
 
           <StatCard
             title="Pending Gigs"
-            value={pendingGigs !== null ? pendingGigs.toLocaleString() : "0"}
+            value={pendingGigs || pendingGigsDelete !== null ? (pendingGigs+pendingGigsDelete).toLocaleString() : "0"}
             icon={<FiClipboard />}
             color="yellow"
             onClick={() => router.push("/dashboard/notifications")}
