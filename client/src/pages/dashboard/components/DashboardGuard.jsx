@@ -16,7 +16,7 @@ export default function DashboardGuard({ children }) {
   useEffect(() => {
     const checkAccess = async () => {
       if (!cookies.jwt) {
-        router.push("/login");
+        router.push("/");
         return;
       }
 
@@ -43,7 +43,7 @@ export default function DashboardGuard({ children }) {
         }
       } catch (err) {
         console.error(err);
-        router.push("/login");
+        router.push("/");
       }
     };
 
