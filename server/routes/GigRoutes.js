@@ -9,6 +9,8 @@ import {
   addReview,
   deleteGig,
   getUnapprovedGigs,
+  approveGig,
+  rejectGig,
 } from "../controllers/GigsController.js";
 import multer from "multer";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
@@ -27,3 +29,5 @@ gigRoutes.get("/check-gig-order/:gigId", verifyToken, checkGigOrder);
 gigRoutes.post("/add-review/:gigId", verifyToken, addReview);
 gigRoutes.delete("/delete/:gigId", verifyToken, deleteGig);
 gigRoutes.get("/unapproved", getUnapprovedGigs);
+gigRoutes.put("/approve/:gigId", verifyToken,approveGig);
+gigRoutes.put("/reject/:gigId", verifyToken, rejectGig);

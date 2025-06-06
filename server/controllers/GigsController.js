@@ -327,7 +327,10 @@ export const getUnapprovedGigs = async (req, res) => {
     const prisma = new PrismaClient();
     const unapprovedGigs = await prisma.gigs.findMany({
       where: {
-        isApproved: false,
+        isApproved: false, 
+        NOT: {
+          approvalStatus: "rejected",
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -343,5 +346,61 @@ export const getUnapprovedGigs = async (req, res) => {
   } catch (err) {
     console.error("Error fetching unapproved gigs:", err);
     return res.status(500).send("Internal server Error");
+  }
+};
+
+export const approveGig = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { gigId } = req.params;
+
+  try {
+    const id = Number(gigId);
+
+    const gig = await prisma.gigs.findUnique({ where: { id } });
+
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    const updated = await prisma.gigs.update({
+      where: { id },
+      data: {
+        isApproved: true,
+        approvalStatus: "approved",
+      },
+    });
+
+    return res.status(200).json({ message: "Gig approved", gig: updated });
+  } catch (error) {
+    console.error("Error approving gig:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+
+export const rejectGig = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { gigId } = req.params;
+
+  try {
+    const id = Number(gigId);
+
+    const gig = await prisma.gigs.findUnique({ where: { id } });
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    const updated = await prisma.gigs.update({
+      where: { id },
+      data: {
+        isApproved: false,
+        approvalStatus: "rejected",
+      },
+    });
+
+    return res.status(200).json({ message: "Gig rejected", gig: updated });
+  } catch (error) {
+    console.error("Error rejecting gig:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
