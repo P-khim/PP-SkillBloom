@@ -321,3 +321,27 @@ export const addReview = async (req, res, next) => {
     return res.status(500).send("Internal Server Error");
   }
 };
+
+export const getUnapprovedGigs = async (req, res) => {
+  try {
+    const prisma = new PrismaClient();
+    const unapprovedGigs = await prisma.gigs.findMany({
+      where: {
+        isApproved: false,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        approvalStatus: true,
+      },
+    });
+    return res.status(200).json({ gigs: unapprovedGigs });
+  } catch (err) {
+    console.error("Error fetching unapproved gigs:", err);
+    return res.status(500).send("Internal server Error");
+  }
+};

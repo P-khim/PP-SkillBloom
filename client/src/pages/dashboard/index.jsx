@@ -16,6 +16,7 @@ export default function DashboardHome() {
   const [cookies] = useCookies(["jwt"]);
   const [formattedDate, setFormattedDate] = useState("");
   const [totalUsers, setTotalUsers] = useState(null);
+  const [pendingGigs, setPendingGigs] = useState(null);
 
   // Format current date
   useEffect(() => {
@@ -57,6 +58,23 @@ export default function DashboardHome() {
 
     fetchUserCount();
   }, []);
+  useEffect(() => {
+    const fetchPendingGigs = async () => {
+      try {
+        const res = await axios.get(`${HOST}/api/gigs/unapproved`, {
+          withCredentials: true,
+        });
+        const count = res.data?.gigs?.length || 0;
+        setPendingGigs(count);
+      } catch (error) {
+        console.error("Error fetching pending gigs:", error);
+        setPendingGigs("N/A");
+      }
+    };
+
+    fetchPendingGigs();
+  }, []);
+
 
   return (
     <DashboardGuard>
@@ -82,9 +100,10 @@ export default function DashboardHome() {
 
           <StatCard
             title="Pending Gigs"
-            value="12"
+            value={pendingGigs !== null ? pendingGigs.toLocaleString() : "0"}
             icon={<FiClipboard />}
             color="yellow"
+            onClick={() => router.push("/dashboard/notifications")}
           />
           <StatCard
             title="Total Revenue"

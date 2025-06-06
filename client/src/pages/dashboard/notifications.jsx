@@ -9,34 +9,29 @@ import {
 } from "react-icons/fi";
 import { formatDistanceToNow } from "date-fns";
 import DashboardGuard from "./components/DashboardGuard";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Notifications() {
-  const notifications = [
-    {
-      id: 1,
-      message: "Gig #102 is pending approval",
-      type: "warning",
-      timestamp: new Date(Date.now() - 1000 * 60 * 10), // 10 minutes ago
-    },
-    {
-      id: 2,
-      message: "Gig #89 is scheduled for deletion",
-      type: "danger",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    },
-    {
-      id: 3,
-      message: "New feature rollout successful",
-      type: "success",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    },
-    {
-      id: 4,
-      message: "System maintenance scheduled for Sunday at 2 AM",
-      type: "info",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchUnapprovedGigs = async () => {
+      try {
+        const { data } = await axios.get("http://localhost:8747/api/gigs/unapproved", { withCredentials: true }); 
+        const dynamicNotifications = data.gigs.map((gig) => ({
+          id: gig.id,
+          message: `Gig #${gig.id} is pending approval`,
+          type: "warning",
+          timestamp: new Date(gig.createdAt),
+        }));
+        setNotifications(dynamicNotifications);
+      } catch (error) {
+        console.error("Failed to fetch unapproved gigs", error);
+      }
+    };
+    fetchUnapprovedGigs();
+  }, []);
 
   const typeStyles = {
     info: {
