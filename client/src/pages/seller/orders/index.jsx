@@ -51,6 +51,9 @@ function Orders() {
               <th scope="col" className="px-6 py-3">
                 Send Message
               </th>
+              <th scope="col" className="px-6 py-3">
+                Order Status
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -82,6 +85,8 @@ function Orders() {
                       Send
                     </Link>
                   </td>
+
+                  <td className="px-6 py-4">{order.status}</td>
                 </tr>
               );
             })}
