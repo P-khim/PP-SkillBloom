@@ -117,7 +117,7 @@ export default function DashboardHome() {
           />
 
           <StatCard
-            title="Pending Gigs"
+            title="Pending"
             value={pendingGigs || pendingGigsDelete !== null ? (pendingGigs+pendingGigsDelete).toLocaleString() : "0"}
             icon={<FiClipboard />}
             color="yellow"
