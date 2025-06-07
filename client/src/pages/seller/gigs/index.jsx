@@ -2,9 +2,13 @@ import { GET_USER_GIGS_ROUTE, DELETE_GIG_ROUTE } from "../../../utils/constants"
 import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 function Index() {
   const [gigs, setGigs] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [gigToDelete, setGigToDelete] = useState(null);
+
   useEffect(() => {
     const getUserGigs = async () => {
       try {
@@ -21,17 +25,34 @@ function Index() {
     getUserGigs();
   }, []);
 
-  const handleDelete = async (id) => {
-    const confirmed = confirm("Are you sure you want to delete this gig?");
-    if(!confirmed) return;
+  // const handleDelete = async (id) => {
+  //   const confirmed = confirm("Are you sure you want to delete this gig?");
+  //   if(!confirmed) return;
 
-    try{
-      await axios.delete(`${DELETE_GIG_ROUTE}/${id}`, {
+  //   try{
+  //     await axios.delete(`${DELETE_GIG_ROUTE}/${id}`, {
+  //       withCredentials: true,
+  //     });
+  //     setGigs((prev) => prev.filter((gigs)=> gigs.id !== id));
+  //   } catch (err){
+  //     console.log("Error deleting gig:", err);
+  //   }
+  // };
+  const handleDelete = (id) => {
+    setGigToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`${DELETE_GIG_ROUTE}/${gigToDelete}`, {
         withCredentials: true,
       });
-      setGigs((prev) => prev.filter((gigs)=> gigs.id !== id));
-    } catch (err){
+      setGigs((prev) => prev.filter((g) => g.id !== gigToDelete));
+    } catch (err) {
       console.log("Error deleting gig:", err);
+    } finally {
+      setGigToDelete(null);
     }
   };
 
@@ -94,7 +115,13 @@ function Index() {
                       Delete
                     </button>
                   </td>
-                </tr>
+                  <ConfirmModal
+                    isOpen={isModalOpen}
+                    setIsOpen={setIsModalOpen}
+                    onConfirm={confirmDelete}
+                    message="Do you really want to delete this gig? This action cannot be undone."
+                  />
+                </tr> 
               );
             })}
           </tbody>
