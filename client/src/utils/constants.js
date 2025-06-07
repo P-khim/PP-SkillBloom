@@ -28,6 +28,10 @@ export const CREATE_ORDER = `${ORDERS_ROUTES}/create`;
 export const ORDER_SUCCESS_ROUTE = `${ORDERS_ROUTES}/success`;
 export const GET_BUYER_ORDERS_ROUTE = `${ORDERS_ROUTES}/get-buyer-orders`;
 export const GET_SELLER_ORDERS_ROUTE = `${ORDERS_ROUTES}/get-seller-orders`;
+export const BUYER_AGREE_ROUTE = `${ORDERS_ROUTES}/buyer-agree`;
+export const SELLER_AGREE_ROUTE = `${ORDERS_ROUTES}/seller-agree`;
+export const SELLER_CANCEL_ROUTE = `${ORDERS_ROUTES}/seller-cancel`;
+export const BUYER_CANCEL_ROUTE = `${ORDERS_ROUTES}/buyer-cancel`;
 
 export const GET_MESSAGES = `${MESSAGES_ROUTES}/get-messages`;
 export const ADD_MESSAGE = `${MESSAGES_ROUTES}/add-message`;
