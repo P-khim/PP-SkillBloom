@@ -27,6 +27,12 @@ enum DeleteStatus {
   deleted     // gig has been deleted (if using soft delete)
 }
 
+enum OrderStatus {
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id Int        @id @default(autoincrement())
   email String  @unique
@@ -90,6 +96,15 @@ model Orders {
   gigId Int
   price Int
   messages Message[]
+
+  status OrderStatus @default(ONGOING)
+  buyerAgreed Boolean @default(false)
+  sellerAgreed Boolean @default(false)
+
+  buyerAgreedAt DateTime?
+  sellerAgreedAt DateTime?
+  completedAt DateTime?
+  cancelReason String?
 }
 
 model Reviews {
