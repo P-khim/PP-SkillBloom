@@ -7,10 +7,14 @@ import {
 import axios from "axios";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [{ userInfo }] = useStateProvider();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(() => () => {});
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const getOrders = async () => {
@@ -60,6 +64,14 @@ function Orders() {
     }
   };
 
+  const openConfirmModal = (message, actionFn) => {
+    setModalMessage(message);
+    setConfirmAction(() => () => {
+      actionFn();
+    });
+    setIsModalOpen(true);
+  }
+
   return (
     <div className="min-h-[80vh] my-10 mt-28 px-32">
       <h3 className="m-5 text-2xl font-semibold">All your Orders</h3>
@@ -103,13 +115,17 @@ function Orders() {
                   {order.status === "ONGOING" && (
                     <>
                       <button
-                        onClick={() => handleBuyerAgree(order.id)}
-                        className="px-2 py-1 bg-green-500 text-white rounded"
+                        onClick={() => openConfirmModal("Are you sure you want to agree to complete this order?", ()=> handleBuyerAgree(order.id)) }
+                        className={`px-2 py-1 bg-green-500 text-white rounded
+                          ${order.buyerAgreed
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-500 hover:bg-green-600"
+                          }`}
                       >
-                        Agree Complete
+                        {order.buyerAgreed ? "Agreed" : "Agree Complete"}
                       </button>
                       <button
-                        onClick={() => handleCancelOrder(order.id)}
+                        onClick={() => openConfirmModal("Are you sure you want to cancel this order?", () => handleCancelOrder(order.id)) }
                         className="px-2 py-1 bg-red-500 text-white rounded"
                       >
                         Cancel Order
@@ -122,6 +138,12 @@ function Orders() {
           </tbody>
         </table>
       </div>
+        <ConfirmModal
+          isOpen={isModalOpen}
+          setIsOpen={setIsModalOpen}
+          onConfirm={confirmAction}
+          message={modalMessage}
+        />
     </div>
   );
 }
