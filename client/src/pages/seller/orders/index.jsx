@@ -176,6 +176,7 @@ function Orders() {
                     <span className="text-gray-500 italic text-sm">Upload your QR Code upon completion</span>
                   )}
                 </td>
+                <td>{order.payment}</td>
                 <td className="px-6 py-4 flex gap-2">
                   {order.status === "ONGOING" && (
                     <>
