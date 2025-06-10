@@ -510,3 +510,73 @@ export const rejectGigDelete = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+export const getUnpaidOrders = async (req, res) => {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.orders.findMany({
+      where: {
+        payment: "UNPAID",
+        qrImage: {
+          not: null,
+        },
+      },
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Failed to fetch unpaid QR orders:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const markPaid = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { id } = req.params;
+  const orderId = Number(id);
+  if (isNaN(orderId)) {
+    return res.status(400).json({ message: "Invalid order ID" });
+  }
+  try {
+    const order = await prisma.orders.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const updated = await prisma.orders.update({
+      where: { id: orderId },
+      data: { payment: "PAID" },
+    });
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Failed to mark order as paid:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const rejectOrder = async (req, res) => {
+  const prisma = new PrismaClient();
+  const { id } = req.params;
+  const orderId = Number(id);
+  if (isNaN(orderId)) {
+    return res.status(400).json({ message: "Invalid order ID" });
+  }
+  try {
+    const order = await prisma.orders.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Instead of deleting, update payment status or another field to "UNPAID" or "REJECTED"
+    const updatedOrder = await prisma.orders.update({
+      where: { id: orderId },
+      data: { payment: "UNPAID" }, // Or use status: "REJECTED" if you have a status column
+    });
+
+    res.status(200).json({ message: "Order marked as unpaid/rejected", order: updatedOrder });
+  } catch (error) {
+    console.error("Failed to update order status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+

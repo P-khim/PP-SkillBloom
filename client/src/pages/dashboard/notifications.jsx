@@ -8,6 +8,7 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiSettings,
+  FiEye,
 } from "react-icons/fi";
 import { formatDistanceToNow } from "date-fns";
 import DashboardGuard from "./components/DashboardGuard";
@@ -18,6 +19,9 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [notificationsDelete, setNotificationsDelete] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [unpaidOrders, setUnpaidOrders] = useState([]);
+  const [selectedQrOrder, setSelectedQrOrder] = useState(null);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const fetchUnapprovedGigs = async () => {
     try {
@@ -59,12 +63,33 @@ export default function Notifications() {
     }
   };
 
+  const fetchUnpaidOrders = async () => {
+    try {
+      const { data } = await axios.get(
+        "http://localhost:8747/api/gigs/unpaid-orders",
+        { withCredentials: true }
+      );
+      const qrOrderNotifications = data.map((order) => ({
+        id: order.id,
+        title: `Order ${order.id}`,
+        message: `Order ${order.id} has unpaid QR`,
+        type: "info",
+        timestamp: new Date(order.createdAt),
+        isQrOrder: true,
+        qrImage: order.qrImage, // assuming API returns this
+      }));
+      setUnpaidOrders(qrOrderNotifications);
+    } catch (error) {
+      console.error("Failed to fetch unpaid QR", error);
+    }
+  };
+
   const handleAction = async (gigId, action, isDeleteRequest = false) => {
     setLoading(true);
     try {
       const routeAction = isDeleteRequest
-        ? `${action}-delete` // "delete-approve" or "delete-reject"
-        : action;            // "approve" or "reject"
+        ? `${action}-delete`
+        : action;
       await axios.put(
         `http://localhost:8747/api/gigs/${routeAction}/${gigId}`,
         {},
@@ -83,9 +108,34 @@ export default function Notifications() {
     }
   };
 
+  const handleQrAction = async (orderId, action) => {
+    setLoading(true);
+    try {
+      let url = "";
+
+      if (action === "paid") {
+        url = `http://localhost:8747/api/gigs/mark-paid/${orderId}`;
+      } else if (action === "reject") {
+        url = `http://localhost:8747/api/gigs/reject-order/${orderId}`;
+      } else {
+        throw new Error("Unknown action");
+      }
+
+      await axios.put(url, {}, { withCredentials: true });
+      setUnpaidOrders((prev) => prev.filter((n) => n.id !== orderId));
+      setShowQrModal(false);
+    } catch (error) {
+      console.error(`Failed to ${action} QR order`, error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     fetchUnapprovedGigs();
     fetchUnapprovedGigsDelete();
+    fetchUnpaidOrders();
   }, []);
 
   const typeStyles = {
@@ -121,7 +171,11 @@ export default function Notifications() {
     },
   };
 
-  const allNotifications = [...notifications, ...notificationsDelete];
+  const allNotifications = [
+    ...notifications,
+    ...notificationsDelete,
+    ...unpaidOrders,
+  ];
 
   return (
     <DashboardGuard>
@@ -135,7 +189,16 @@ export default function Notifications() {
           {allNotifications.length > 0 ? (
             <ul className="space-y-4">
               {allNotifications.map(
-                ({ id, title, message, type, timestamp, isDeleteRequest }) => {
+                ({
+                  id,
+                  title,
+                  message,
+                  type,
+                  timestamp,
+                  isDeleteRequest,
+                  isQrOrder,
+                  qrImage,
+                }) => {
                   const style = typeStyles[type] || typeStyles.default;
                   return (
                     <li
@@ -152,25 +215,55 @@ export default function Notifications() {
                             addSuffix: true,
                           })}
                         </p>
-                        <div className="flex gap-2 mt-3">
-                          <button
-                            disabled={loading}
-                            onClick={() =>
-                              handleAction(id, "approve", isDeleteRequest)
-                            }
-                            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            disabled={loading}
-                            onClick={() =>
-                              handleAction(id, "reject", isDeleteRequest)
-                            }
-                            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                          >
-                            Reject
-                          </button>
+                        <div className="flex gap-2 mt-3 flex-wrap">
+                          {isQrOrder ? (
+                            <>
+                              <button
+                                className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                onClick={() => {
+                                  setSelectedQrOrder({ id, qrImage });
+                                  setShowQrModal(true);
+                                }}
+                              >
+                                <FiEye /> View QR
+                              </button>
+                              <button
+                                disabled={loading}
+                                onClick={() => handleQrAction(id, "paid")}
+                                className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                              >
+                                PAID
+                              </button>
+                              <button
+                                disabled={loading}
+                                onClick={() => handleQrAction(id, "reject")}
+                                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                disabled={loading}
+                                onClick={() =>
+                                  handleAction(id, "approve", isDeleteRequest)
+                                }
+                                className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                disabled={loading}
+                                onClick={() =>
+                                  handleAction(id, "reject", isDeleteRequest)
+                                }
+                                className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </li>
@@ -182,6 +275,27 @@ export default function Notifications() {
             <p className="text-gray-500 italic">You have no notifications.</p>
           )}
         </div>
+
+        {showQrModal && selectedQrOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-lg relative">
+              <h3 className="text-lg font-semibold mb-4">
+                QR Code for Order #{selectedQrOrder.id}
+              </h3>
+              <img
+                src={`http://localhost:8747/${selectedQrOrder.qrImage}`}
+                alt={`QR for order ${selectedQrOrder.id}`}
+                className="w-full object-contain"
+              />
+              <button
+                className="absolute top-2 right-2 text-gray-600 hover:text-red-600"
+                onClick={() => setShowQrModal(false)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </DashboardLayout>
     </DashboardGuard>
   );
