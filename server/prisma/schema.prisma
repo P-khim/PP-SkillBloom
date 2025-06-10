@@ -33,6 +33,11 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 model User {
   id Int        @id @default(autoincrement())
   email String  @unique
@@ -107,6 +112,7 @@ model Orders {
   cancelReason String?
 
   qrImage String?
+  payment PaymentStatus @default(UNPAID)
 }
 
 model Reviews {
