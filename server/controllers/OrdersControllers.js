@@ -103,8 +103,8 @@ const prisma = new PrismaClient();
 
 export const buyerAgreeComplete = async (req, res) => {
   try {
-    console.log("buyerAgreeComplete userId:", req.userId);
-    console.log("buyerAgreeComplete req.body:", req.body);
+    // console.log("buyerAgreeComplete userId:", req.userId);
+    // console.log("buyerAgreeComplete req.body:", req.body);
 
     const { orderId, userId } = req.body;
     //const userId = req.userId;

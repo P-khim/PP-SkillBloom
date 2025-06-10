@@ -152,24 +152,28 @@ function Orders() {
                 </td>
                 <td className="px-6 py-4">{order.status}</td>
                 <td className="px-6 py-4">
-                  {order.qrImage ? (
-                    <span className="text-green-600 font-semibold">QR uploaded</span>
+                  {order.status === "COMPLETED" ? (
+                    order.qrImage ? (
+                      <span className="text-green-600 font-semibold">QR uploaded</span>
+                    ) : (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleQrFileChange(order.id, e)}
+                          className="mb-1"
+                        />
+                        <button
+                          onClick={() => handleUploadQr(order.id)}
+                          className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
+                          disabled={!qrFiles[order.id]}
+                        >
+                          Upload
+                        </button>
+                      </>
+                    )
                   ) : (
-                    <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleQrFileChange(order.id, e)}
-                        className="mb-1"
-                      />
-                      <button
-                        onClick={() => handleUploadQr(order.id)}
-                        className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
-                        disabled={!qrFiles[order.id]} // optionally disable if no file selected
-                      >
-                        Upload
-                      </button>
-                    </>
+                    <span className="text-gray-500 italic text-sm">Upload your QR Code upon completion</span>
                   )}
                 </td>
                 <td className="px-6 py-4 flex gap-2">
