@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { genSalt, hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
-import { renameSync } from "fs";
+import { renameSync, existsSync, mkdirSync } from "fs";
 import { create } from "domain";
 
 const generatePassword = async (password) => {
@@ -302,5 +302,38 @@ export const getAllUsers = async (req,res) => {
   } catch (err){
     console.error("Error fetching all users:", err);
     return res.status(500).json({message: "Internal Server Error"});
+  }
+};
+
+export const qrUpload = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).send("QR image not provided.");
+    const { orderId } = req.body;
+    if (!orderId) return res.status(400).send("Order ID is required.");
+
+    const prisma = new PrismaClient();
+    const order = await prisma.orders.findUnique({ where: { id: parseInt(orderId) } });
+
+    if (!order) return res.status(404).send("Order not found.");
+    if (order.status !== "COMPLETED")
+      return res.status(403).send("QR upload allowed only for completed orders.");
+
+    const destDir = "uploads/qr";
+    if (!existsSync(destDir)) {
+      mkdirSync(destDir, { recursive: true });
+    }
+
+    const filePath = `${destDir}/${Date.now()}_${req.file.originalname}`;
+    renameSync(req.file.path, filePath);
+
+    await prisma.orders.update({
+      where: { id: parseInt(orderId) },
+      data: { qrImage: filePath },
+    });
+
+    return res.status(200).json({ message: "QR uploaded", qrImage: filePath });
+  } catch (err) {
+    console.error("Error uploading QR image:", err);
+    return res.status(500).send("Internal Server Error");
   }
 };

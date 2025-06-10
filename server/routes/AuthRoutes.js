@@ -4,6 +4,7 @@ import {
   getUserInfo,
   getUserInfoByUserName,
   login,
+  qrUpload,
   setUserImage,
   setUserInfo,
   signup,
@@ -26,6 +27,13 @@ authRoutes.post(
   verifyToken,
   upload.single("images"),
   setUserImage
+);
+
+authRoutes.post(
+  "/qr-upload",
+  verifyToken,
+  upload.single("qrImage"),
+  qrUpload
 );
 
 export default authRoutes;

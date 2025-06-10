@@ -15,6 +15,7 @@ function Orders() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(() => () => {});
   const [modalMessage, setModalMessage] = useState("");
+  const [qrFiles, setQrFiles] = useState({});
 
   useEffect(() => {
     const getOrders = async () => {
@@ -72,6 +73,41 @@ function Orders() {
     setIsModalOpen(true);
   }
 
+  const handleQrFileChange = (orderId, event) => {
+    setQrFiles((prev) => ({
+      ...prev,
+      [orderId]: event.target.files[0],
+    }));
+  };
+
+  const handleUploadQr = async (orderId) => {
+    if (!qrFiles[orderId]) return alert("Please select a QR file first.");
+
+    const formData = new FormData();
+    formData.append("qrImage", qrFiles[orderId]);
+    formData.append("orderId", orderId);
+
+    try {
+      // Replace with your actual QR upload API route
+      await axios.post('http://localhost:8747/api/auth/qr-upload', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert("QR uploaded successfully!");
+      // Optionally, refresh orders or reset input
+      setQrFiles((prev) => ({ ...prev, [orderId]: null }));
+
+      // Refresh orders here:
+      const { data } = await axios.get(GET_SELLER_ORDERS_ROUTE, {
+        withCredentials: true,
+      });
+    setOrders(data.orders);
+    } catch (err) {
+      console.error("QR upload failed", err);
+      alert("Failed to upload QR.");
+    }
+  };
+
   return (
     <div className="min-h-[80vh] my-10 mt-0 px-32">
       <h3 className="m-5 text-2xl font-semibold">All your Orders</h3>
@@ -115,6 +151,27 @@ function Orders() {
                   </Link>
                 </td>
                 <td className="px-6 py-4">{order.status}</td>
+                <td className="px-6 py-4">
+                  {order.qrImage ? (
+                    <span className="text-green-600 font-semibold">QR uploaded</span>
+                  ) : (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleQrFileChange(order.id, e)}
+                        className="mb-1"
+                      />
+                      <button
+                        onClick={() => handleUploadQr(order.id)}
+                        className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
+                        disabled={!qrFiles[order.id]} // optionally disable if no file selected
+                      >
+                        Upload
+                      </button>
+                    </>
+                  )}
+                </td>
                 <td className="px-6 py-4 flex gap-2">
                   {order.status === "ONGOING" && (
                     <>
