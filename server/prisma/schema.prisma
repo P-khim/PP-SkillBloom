@@ -105,6 +105,8 @@ model Orders {
   sellerAgreedAt DateTime?
   completedAt DateTime?
   cancelReason String?
+
+  qrImage String?
 }
 
 model Reviews {
