@@ -150,12 +150,12 @@ function Orders() {
           </tbody>
         </table>
       </div>
-            <ConfirmModal
-        isOpen={isModalOpen}
-        setIsOpen={setIsModalOpen}
-        onConfirm={confirmAction}
-        message={modalMessage}
-      />
+        <ConfirmModal
+          isOpen={isModalOpen}
+          setIsOpen={setIsModalOpen}
+          onConfirm={confirmAction}
+          message={modalMessage}
+        />
     </div>
   );
 }
