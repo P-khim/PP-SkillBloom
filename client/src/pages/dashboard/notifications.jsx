@@ -73,12 +73,14 @@ export default function Notifications() {
         id: order.id,
         title: `Order ${order.id}`,
         message: `Order ${order.id} has unpaid QR`,
-        type: "info",
+        type: "success",
         timestamp: new Date(order.createdAt),
         isQrOrder: true,
         qrImage: order.qrImage, // assuming API returns this
+        price: order.price,
       }));
       setUnpaidOrders(qrOrderNotifications);
+      console.log(unpaidOrders);
     } catch (error) {
       console.error("Failed to fetch unpaid QR", error);
     }
@@ -177,6 +179,14 @@ export default function Notifications() {
     ...unpaidOrders,
   ];
 
+  let price = 0;
+  let commissionRate = 0.08;
+  let priceToPay = 0;
+  if(selectedQrOrder && selectedQrOrder.price) {
+    price = Number(selectedQrOrder.price);
+    priceToPay = (price - price * commissionRate).toFixed(2);
+  }
+
   return (
     <DashboardGuard>
       <DashboardLayout>
@@ -221,12 +231,18 @@ export default function Notifications() {
                               <button
                                 className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                                 onClick={() => {
-                                  setSelectedQrOrder({ id, qrImage });
-                                  setShowQrModal(true);
+                                  const order = unpaidOrders.find((o) => o.id === id);
+                                  if (order) {
+                                    setSelectedQrOrder(order);
+                                    setShowQrModal(true);
+                                  } else {
+                                    console.warn(`Order with ID ${id} not found`);
+                                  }
                                 }}
                               >
                                 <FiEye /> View QR
                               </button>
+
                               <button
                                 disabled={loading}
                                 onClick={() => handleQrAction(id, "paid")}
@@ -282,6 +298,9 @@ export default function Notifications() {
               <h3 className="text-lg font-semibold mb-4">
                 QR Code for Order #{selectedQrOrder.id}
               </h3>
+              <h4>Original price: {price} $</h4>
+              <h4>Skillbloom commission: 8%</h4>
+              <h4>Price to pay: {priceToPay} $</h4>
               <img
                 src={`http://localhost:8747/${selectedQrOrder.qrImage}`}
                 alt={`QR for order ${selectedQrOrder.id}`}
