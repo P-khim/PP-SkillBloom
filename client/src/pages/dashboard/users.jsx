@@ -10,6 +10,14 @@ export default function UserList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -91,7 +99,7 @@ export default function UserList() {
               className="w-full max-w-md px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <button
-              onClick={() => alert("Open Create User Modal or Navigate")}
+              onClick={() => setShowModal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
             >
               + Create User
@@ -200,6 +208,101 @@ export default function UserList() {
             </button>
           </div>
         )}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+              <h2 className="text-xl font-semibold mb-4">Create New User</h2>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    const token = localStorage.getItem("token");
+
+                    const res = await fetch(`${HOST}/api/auth/signup-admin`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify(newUser),
+                    });
+
+                    if (!res.ok) {
+                      const errorData = await res.json();
+                      throw new Error(errorData.message || "Failed to create user");
+                    }
+
+                    const data = await res.json();
+                    setUsers((prev) => [...prev, data.user]);
+                    setShowModal(false);
+                    setNewUser({ fullName: "", email: "", password: "", role: "user" });
+                  } catch (error) {
+                    console.error("Error creating user:", error.message);
+                    alert("Failed to create user: " + error.message);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={newUser.fullName}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, fullName: e.target.value })
+                  }
+                  required
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={newUser.email}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, email: e.target.value })
+                  }
+                  required
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, password: e.target.value })
+                  }
+                  required
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <select
+                  value={newUser.role}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, role: e.target.value })
+                  }
+                  className="w-full border px-3 py-2 rounded"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Create
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     </DashboardLayout>
     </DashboardGuard>

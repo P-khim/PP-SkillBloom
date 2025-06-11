@@ -337,3 +337,38 @@ export const qrUpload = async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 };
+
+export const signupAdmin = async (req, res, next) => {
+  try {
+    const prisma = new PrismaClient();
+    const { fullName, email, password, role } = req.body;
+
+    if (email && password && fullName && role) {
+      const user = await prisma.user.create({
+        data: {
+          fullName,
+          email,
+          password: await generatePassword(password),
+          role, // this is the fix
+        },
+      });
+
+      return res.status(201).json({
+        user: { id: user?.id, email: user?.email, role: user?.role, fullName: user?.fullName },
+        jwt: createToken(email, user.id),
+      });
+    } else {
+      return res.status(400).send("Full Name, Email, Password and Role are required");
+    }
+  } catch (err) {
+    console.log(err);
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        return res.status(409).send("Email Already Registered");
+      }
+    } else {
+      return res.status(500).send("Internal Server Error");
+    }
+    throw err;
+  }
+};

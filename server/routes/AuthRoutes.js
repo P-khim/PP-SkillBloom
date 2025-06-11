@@ -8,6 +8,7 @@ import {
   setUserImage,
   setUserInfo,
   signup,
+  signupAdmin,
 } from "../controllers/AuthControllers.js";
 import { verifyToken } from "../middlewares/AuthMiddleware.js";
 import multer from "multer";
@@ -35,5 +36,7 @@ authRoutes.post(
   upload.single("qrImage"),
   qrUpload
 );
+
+authRoutes.post("/signup-admin", signupAdmin);
 
 export default authRoutes;
