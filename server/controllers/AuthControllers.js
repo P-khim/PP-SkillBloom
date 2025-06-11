@@ -372,3 +372,38 @@ export const signupAdmin = async (req, res, next) => {
     throw err;
   }
 };
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    const prisma = new PrismaClient();
+    const userId = parseInt(req.params.id, 10);
+
+    if (!userId) {
+      return res.status(400).send("Invalid user ID");
+    }
+
+    // Optional: Check if the current user is admin or authorized to delete users
+    // if (req.role !== "admin") {
+    //   return res.status(403).send("Forbidden");
+    // }
+
+    // Check if user exists first
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    // Delete the user
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    return res.status(500).send("Internal Server Error");
+  }
+};

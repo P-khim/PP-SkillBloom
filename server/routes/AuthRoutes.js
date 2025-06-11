@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  deleteUser,
   getAllUsers,
   getUserInfo,
   getUserInfoByUserName,
@@ -38,5 +39,6 @@ authRoutes.post(
 );
 
 authRoutes.post("/signup-admin", signupAdmin);
+authRoutes.delete("/delete-user/:id", deleteUser);
 
 export default authRoutes;

@@ -66,14 +66,35 @@ export default function UserList() {
     alert(`Edit user with id ${id}`);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
-      setUsers((prev) => prev.filter((user) => user.id !== id));
-      if ((currentPage - 1) * USERS_PER_PAGE >= filteredUsers.length - 1) {
-        setCurrentPage(Math.max(currentPage - 1, 1));
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${HOST}/api/auth/delete-user/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to delete user");
+        }
+
+        // Update UI after successful delete
+        setUsers((prev) => prev.filter((user) => user.id !== id));
+        
+        // Adjust page if needed
+        if ((currentPage - 1) * USERS_PER_PAGE >= filteredUsers.length - 1) {
+          setCurrentPage(Math.max(currentPage - 1, 1));
+        }
+      } catch (error) {
+        alert("Error deleting user: " + error.message);
+        console.error(error);
       }
     }
   };
+
 
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
