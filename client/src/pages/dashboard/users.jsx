@@ -3,6 +3,7 @@ import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { useState, useEffect, useMemo } from "react";
 import { HOST } from "../../utils/constants";
 import DashboardGuard from "./components/DashboardGuard";
+import ConfirmModal from "../../components/ConfirmModal";
 const USERS_PER_PAGE = 5;
 
 export default function UserList() {
@@ -18,6 +19,7 @@ export default function UserList() {
     role: "user",
   });
   const [creating, setCreating] = useState(false);
+  const [confirmDeleteUserId, setConfirmDeleteUserId] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -67,7 +69,6 @@ export default function UserList() {
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this user?")) {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(`${HOST}/api/auth/delete-user/${id}`, {
@@ -92,7 +93,6 @@ export default function UserList() {
         alert("Error deleting user: " + error.message);
         console.error(error);
       }
-    }
   };
 
 
@@ -175,7 +175,7 @@ export default function UserList() {
                         <FiEdit2 className="mr-1" /> Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => setConfirmDeleteUserId(user.id)}
                         className="inline-flex items-center px-3 py-1 rounded text-red-600 hover:bg-red-100 focus:outline-none"
                       >
                         <FiTrash2 className="mr-1" /> Delete
@@ -323,7 +323,15 @@ export default function UserList() {
             </div>
           </div>
         )}
-
+        <ConfirmModal 
+          isOpen={!!confirmDeleteUserId}
+          setIsOpen={() => setConfirmDeleteUserId(null)}
+          message="This action can't be undone. Do you really want to delete this user?"
+          onConfirm={() => {
+            handleDelete(confirmDeleteUserId);
+            setConfirmDeleteUserId(null);
+          }}
+        />
       </div>
     </DashboardLayout>
     </DashboardGuard>
